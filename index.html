@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sweat Pact">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#f6f6f3">
+<title>Sweat Pact</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f6f3; --card:#ffffff; --line:#e7e6e0; --text:#141414; --mute:#86857f;
+    --me:#9bd400; --them:#ff5c8a; --both:#ffd23d;
+    --r:22px; --empty:#efeee9; --onacc:#141414;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{transition:background .3s;background:var(--bg);color:var(--text);font-family:"Space Grotesk",system-ui,sans-serif}
+  body{min-height:100vh;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 40px)}
+  .wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  h1,.big{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-.02em}
+  header{display:flex;align-items:flex-end;justify-content:space-between;padding:4px 4px 2px}
+  header h1{font-size:34px;line-height:1}
+  header h1 span{color:var(--me)}
+  header .wk{color:var(--mute);font-size:13px;text-align:right;line-height:1.3}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+  .banner{font-size:13px;color:var(--mute);text-align:center;padding:10px 14px;border:1px dashed var(--line);border-radius:14px}
+  .banner.hide{display:none}
+
+  /* Duel */
+  .duel{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px}
+  .duel .vs{align-self:center;margin-top:-30px}
+  .vs{font-family:"Bricolage Grotesque";font-weight:800;color:var(--mute);font-size:14px}
+  .player{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:default}
+  .player.mine{cursor:pointer}
+  .ring{position:relative;width:112px;height:112px;cursor:pointer}
+  .ring > svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .ring .emo{position:absolute;inset:10px;display:grid;place-items:center}
+  .ring .emo svg{width:100%;height:100%;overflow:visible}
+  .edit-me{background:none;border:none;color:var(--mute);font:inherit;font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:2px}
+  /* Avatars */
+  .av{overflow:visible}
+  .av .bod{transform-origin:50px 94px;animation:av-bob 2.6s ease-in-out infinite}
+  .av .shd{transform-origin:50px 96px;animation:av-shd 2.6s ease-in-out infinite}
+  .av .eyes{transform-origin:50px 52px;animation:av-blink 4.6s infinite}
+  .av.hyped .bod{animation:av-jump 1.1s cubic-bezier(.3,0,.3,1) infinite}
+  .av.hyped .shd{animation:av-shdj 1.1s cubic-bezier(.3,0,.3,1) infinite}
+  .av.sleepy .bod{animation:av-sway 4s ease-in-out infinite}
+  .av.sleepy .eyes{animation:none}
+  .av .spk{transform-box:fill-box;transform-origin:center;animation:av-twinkle 1.4s ease-in-out infinite}
+  .av .spk:nth-of-type(2){animation-delay:.45s}.av .spk:nth-of-type(3){animation-delay:.9s}
+  .av .zz{animation:av-z 2.6s ease-in infinite;opacity:0}
+  .av .zz:nth-of-type(2){animation-delay:1.3s}
+  .av .ant{transform-origin:50px 20px;animation:av-ant 1.6s ease-in-out infinite}
+  .av.poke .bod{animation:av-poke .7s cubic-bezier(.3,0,.3,1)}
+  .av.still .bod,.av.still .shd{animation:none}
+  @keyframes av-bob{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-3px) scale(.97,1.03)}}
+  @keyframes av-shd{0%,100%{transform:scale(1)}50%{transform:scale(.9)}}
+  @keyframes av-jump{0%,100%{transform:translateY(0) scale(1.07,.93)}18%{transform:translateY(0) scale(.94,1.06)}48%{transform:translateY(-12px) scale(1,1)}78%{transform:translateY(0) scale(1.06,.94)}}
+  @keyframes av-shdj{0%,18%,78%,100%{transform:scale(1)}48%{transform:scale(.6)}}
+  @keyframes av-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  @keyframes av-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+  @keyframes av-twinkle{0%,100%{transform:scale(.3) rotate(0);opacity:.2}50%{transform:scale(1) rotate(45deg);opacity:1}}
+  @keyframes av-z{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(10px,-22px);opacity:0}}
+  @keyframes av-ant{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  @keyframes av-poke{0%{transform:scale(1)}20%{transform:scale(1.15,.8)}50%{transform:translateY(-16px) scale(.9,1.1) rotate(-8deg)}75%{transform:translateY(0) scale(1.08,.92)}100%{transform:scale(1)}}
+  /* Builder */
+  .builder{display:flex;gap:14px;align-items:center;margin-bottom:16px}
+  .builder .prev{width:110px;height:110px;flex:none;background:var(--empty);border-radius:24px;padding:10px}
+  .builder .prev svg{width:100%;height:100%;overflow:visible}
+  .builder .side{flex:1;display:flex;flex-direction:column;gap:8px}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opts button{width:46px;height:46px;border-radius:12px;background:var(--empty);border:2px solid transparent;cursor:pointer;padding:4px}
+  .opts button svg{width:100%;height:100%;overflow:visible}
+  .opts button.sel{border-color:var(--text)}
+  .swatches{display:flex;gap:6px;flex-wrap:wrap}
+  .swatches button{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+  .swatches button.sel{border-color:var(--text)}
+  .sub{font-size:12px;color:var(--mute);margin:10px 0 6px}
+  .dice{background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  /* Motion */
+  body.intro .card,body.intro .go{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+  body.intro .a-duel{animation-delay:.02s}body.intro .a-go{animation-delay:.08s}body.intro .a-dare{animation-delay:.14s}
+  body.intro .a-week{animation-delay:.06s}body.intro .a-heat{animation-delay:.12s}body.intro .a-badges{animation-delay:.18s}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}}
+  body.intro .ring circle+circle{animation:ring-in 1.1s .25s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes ring-in{from{stroke-dashoffset:var(--c)}}
+  body.intro .cell{animation:pop .4s cubic-bezier(.3,1.6,.5,1) both}
+  @keyframes pop{from{transform:scale(0);opacity:0}}
+  .dot.pop{animation:dotpop .55s cubic-bezier(.3,1.8,.5,1)}
+  @keyframes dotpop{0%{transform:scale(.3)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+  .go:not(.done){position:relative;overflow:hidden}
+  .go:not(.done)::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite}
+  @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+  .badge.got{animation:glint 4s ease-in-out infinite}
+  @keyframes glint{0%,90%,100%{filter:none}95%{filter:brightness(1.15) saturate(1.3)}}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+  .crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-8deg);font-size:24px;animation:bob 2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateX(-50%) rotate(8deg) translateY(-3px)}}
+  .nick{font-weight:600;font-size:16px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stat{font-size:13px;color:var(--mute)}
+  .stat b{color:var(--text);font-weight:600}
+  .empty-slot{width:96px;height:96px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;color:var(--mute);font-size:12px;text-align:center;padding:10px}
+  .taunt{text-align:center;font-size:14px;color:var(--mute);margin-top:12px;min-height:18px}
+  .taunt b{color:var(--text)}
+
+  /* Big button */
+  .go{width:100%;border:none;border-radius:var(--r);padding:22px 18px;font-family:"Bricolage Grotesque";font-weight:800;font-size:26px;
+      background:var(--me);color:var(--onacc);cursor:pointer;transition:transform .12s ease, box-shadow .2s;box-shadow:0 10px 30px -10px color-mix(in srgb, var(--me) 55%, transparent)}
+  .go:active{transform:scale(.97)}
+  .go.done{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:none;font-size:20px}
+  .go small{display:block;font-family:"Space Grotesk";font-weight:500;font-size:13px;opacity:.7;margin-top:4px}
+
+  /* Week strip */
+  .row-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .day{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .day .lbl{font-size:12px;color:var(--mute)}
+  .day.today .lbl{color:var(--text);font-weight:600}
+  .dot{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:var(--empty);border:1px solid transparent;transition:transform .15s}
+  .dot.me{cursor:pointer}
+  .dot.me.on{background:color-mix(in srgb, var(--me) 14%, transparent);border-color:color-mix(in srgb, var(--me) 50%, transparent)}
+  .dot.them.on{background:color-mix(in srgb, var(--them) 14%, transparent);border-color:color-mix(in srgb, var(--them) 50%, transparent)}
+  .dot.future{opacity:.3;cursor:default}
+  .dot.me:not(.future):active{transform:scale(.9)}
+  .legend{display:flex;gap:12px;font-size:12px;color:var(--mute)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:0}
+
+  /* Heatmap */
+  .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px;overflow-x:auto;padding-bottom:2px}
+  .cell{width:100%;aspect-ratio:1;min-width:14px;border-radius:4px;background:var(--empty)}
+  .cell.m{background:var(--me)} .cell.t{background:var(--them)}
+  .cell.b{background:linear-gradient(135deg,var(--me) 50%,var(--them) 50%)}
+  .cell.split{display:flex;gap:1.5px;overflow:hidden;background:var(--card)}
+  .cell.split i{flex:1;display:block}
+  .cell.split i.m{background:var(--me)} .cell.split i.t{background:var(--them)}
+  .cell.fut{background:transparent}
+
+  /* Badges + stakes */
+  .stakes{display:flex;align-items:center;gap:12px}
+  .stakes .ico{font-size:28px}
+  .stakes .txt{flex:1}
+  .stakes .k{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+  .stakes .v{font-size:17px;font-weight:600;margin-top:2px;word-break:break-word}
+  .stakes input{width:100%;background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 10px;font:inherit;font-size:16px}
+  .icon-btn{background:none;border:1px solid var(--line);color:var(--mute);border-radius:12px;padding:8px 10px;cursor:pointer;font:inherit;font-size:13px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{padding:7px 11px;border-radius:999px;background:var(--empty);border:1px solid var(--line);font-size:13px;color:var(--mute)}
+  .badge.got{color:var(--text);border-color:rgba(255,210,61,.5);background:rgba(255,210,61,.1)}
+
+  .dot.me:not(.on):not(.future)::before{content:"+";font-size:22px;font-weight:500;line-height:1;color:var(--mute);opacity:.55;transition:opacity .15s,transform .15s}
+  .dot.me:not(.on):not(.future):hover::before{opacity:1;transform:scale(1.15)}
+  .dot.me:not(.on):not(.future){border:1.5px dashed var(--line)}
+  .a-week .row-title{flex-wrap:wrap;gap:8px 12px}
+  .legend span{white-space:nowrap}
+  .wnav{display:flex;align-items:center;gap:6px}
+  .wnav button{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;padding-bottom:2px}
+  .wnav button:disabled{opacity:.3;cursor:default}
+  .wnav button:not(:disabled):hover{border-color:var(--me)}
+  .wnav span{min-width:0;white-space:nowrap}
+  .wnav span em{font-style:normal;text-transform:none;letter-spacing:0;margin-left:6px;opacity:.75}
+  .week.from-left{animation:wl .3s ease}.week.from-right{animation:wr .3s ease}
+  @keyframes wl{from{opacity:0;transform:translateX(-18px)}} @keyframes wr{from{opacity:0;transform:translateX(18px)}}
+  /* Notes */
+  .dot{position:relative}
+  .nb{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+      font-size:10px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.12);pointer-events:none;animation:nbpop .4s cubic-bezier(.3,1.8,.5,1)}
+  @keyframes nbpop{from{transform:scale(0)}}
+  .tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);width:max-content;max-width:220px;
+       background:var(--text);color:var(--bg);font-size:13px;line-height:1.4;font-weight:500;padding:9px 11px;border-radius:12px;text-align:left;
+       white-space:normal;word-break:break-word;opacity:0;pointer-events:none;transition:opacity .15s, transform .15s;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+  .tip b{display:block;font-size:11px;opacity:.6;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+  .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--text)}
+  .day:nth-child(-n+2) .tip{left:0;transform:translateY(4px)} .day:nth-child(-n+2) .tip::after{left:18px}
+  .day:nth-child(n+6) .tip{left:auto;right:0;transform:translateY(4px)} .day:nth-child(n+6) .tip::after{left:auto;right:12px;transform:none}
+  @media (hover:hover){.dot.has-note:hover .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+    .day:nth-child(-n+2) .dot.has-note:hover .tip,.day:nth-child(n+6) .dot.has-note:hover .tip{transform:translateY(0)}}
+  .dot.show .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+  .day:nth-child(-n+2) .dot.show .tip,.day:nth-child(n+6) .dot.show .tip{transform:translateY(0)}
+  .note-in{width:100%;background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:12px 14px;font:inherit;font-size:16px;resize:none;margin-bottom:6px}
+  .note-in:focus{outline:none;border-color:var(--me)}
+  .hint{font-size:12px;color:var(--mute);margin:10px 0 8px}
+  .sheet-actions{display:flex;gap:8px;margin-top:14px}
+  .sheet-actions button{flex:1;border-radius:14px;padding:13px;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+  .btn-save{background:var(--me);color:var(--onacc);border:none}
+  .btn-del{background:none;border:1px solid var(--line);color:#e5484d}
+  /* Multiple sessions per day */
+  .faces{display:flex;align-items:center;justify-content:center;line-height:1}
+  .dot.multi .faces{font-size:14px;letter-spacing:-2px}
+  .dot.multi.n3 .faces{font-size:11px}
+  .cnt{position:absolute;bottom:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--text);color:var(--bg);
+       font-size:11px;font-weight:700;display:grid;place-items:center;pointer-events:none}
+  .tip .tl{display:flex;gap:6px;align-items:flex-start;margin-top:3px}
+  .tip .tl span{flex:1}
+  .srow{display:flex;align-items:center;gap:12px;background:var(--empty);border-radius:14px;padding:12px;margin-bottom:8px}
+  .srow .se{font-size:26px}
+  .srow .st{flex:1;display:flex;flex-direction:column;gap:2px;font-size:15px}
+  .srow .st span{font-size:13px;color:var(--mute);word-break:break-word}
+  .sbtn{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .add-another{width:100%;margin-top:4px;border:1.5px dashed var(--line);background:none;color:var(--text);border-radius:14px;padding:14px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .add-another:hover{border-color:var(--me)}
+  .who-btn{display:flex;align-items:center;gap:14px;width:100%;background:var(--empty);border:1px solid transparent;color:var(--text);border-radius:16px;padding:10px 14px;margin-bottom:8px;font:inherit;font-size:17px;cursor:pointer;text-align:left}
+  .who-btn:hover{border-color:var(--me)}
+  .who-av{width:52px;height:52px;flex:none}.who-av svg{width:100%;height:100%;overflow:visible}
+  .foot a{color:var(--mute)}
+  /* Dare */
+  .who{font-size:14px;color:var(--mute);margin-bottom:12px}
+  .who b{color:var(--text)}
+  .dare-box{background:var(--empty);border-radius:16px;padding:16px;min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+  .pill{align-self:flex-start;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:999px;background:var(--card);color:var(--mute);border:1px solid var(--line)}
+  .dare-txt{font-size:18px;font-weight:600;line-height:1.35}
+  .dare-box.spin .dare-txt{opacity:.55}
+  .dare-actions{display:flex;gap:8px;margin-top:12px}
+  .dare-actions button{flex:1;background:none;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 6px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .dare-actions button.main{background:var(--me);color:var(--onacc);border-color:transparent}
+  .dare-box textarea{width:100%;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;font:inherit;font-size:16px;resize:none}
+  .deck h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:18px 0 8px}
+  .deck h3:first-child{margin-top:0}
+  .deck button{display:block;width:100%;text-align:left;background:var(--empty);border:1px solid transparent;color:var(--text);border-radius:12px;padding:11px 12px;margin-bottom:6px;font:inherit;font-size:15px;cursor:pointer}
+  .deck button.sel{border-color:var(--me)}
+  .sheet{max-height:88vh;overflow-y:auto}
+  /* Sheets */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center;z-index:20;backdrop-filter:blur(4px)}
+  .scrim.open{display:flex}
+  .sheet{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:26px 26px 0 0;padding:22px 18px calc(env(safe-area-inset-bottom) + 22px);animation:up .25s ease}
+  @media(min-width:700px){.scrim{align-items:center}.sheet{border-radius:26px}}
+  @keyframes up{from{transform:translateY(40px);opacity:0}}
+  .sheet h2{font-family:"Bricolage Grotesque";font-weight:800;font-size:24px;margin-bottom:14px}
+  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .chip{background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:16px;padding:14px 6px;font:inherit;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .chip span{font-size:26px}
+  .chip.sel{border-color:var(--me);background:color-mix(in srgb, var(--me) 10%, transparent)}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+  .field input{width:100%;background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:14px;padding:14px;font:inherit;font-size:17px}
+  .emojis{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .emojis button{font-size:24px;background:var(--empty);border:1px solid var(--line);border-radius:12px;padding:8px 0;cursor:pointer}
+  .emojis button.sel{border-color:var(--me);background:color-mix(in srgb, var(--me) 10%, transparent)}
+  .goal{display:flex;gap:6px}
+  .goal button{flex:1;background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px 0;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+  .goal button.sel{border-color:var(--me);background:var(--me);color:var(--onacc)}
+  .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .themes button{border-radius:14px;padding:10px 8px;cursor:pointer;font:inherit;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border:2px solid transparent}
+  .themes button i{width:18px;height:18px;border-radius:50%;flex:none}
+  .themes button.sel{border-color:var(--text)}
+  .primary{width:100%;margin-top:6px;border:none;border-radius:16px;padding:16px;background:var(--me);color:var(--onacc);font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;cursor:pointer}
+  .ghost{width:100%;margin-top:8px;border:none;background:none;color:var(--mute);font:inherit;padding:10px;cursor:pointer}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--onacc);font-weight:600;
+         padding:12px 18px;border-radius:999px;z-index:40;transition:all .3s;max-width:90vw;text-align:center;font-size:15px;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:30}
+  .foot{text-align:center;font-size:12px;color:var(--mute);line-height:1.5;padding:6px 10px}
+  /* Layout: single column on phones, two clean columns on desktop */
+  .cols{display:flex;flex-direction:column;gap:14px}
+  .col{display:contents}
+  .a-duel{order:1}.a-go{order:2}.a-week{order:3}.a-dare{order:4}.a-heat{order:5}.a-badges{order:6}
+  @media (min-width:900px){
+    body{padding-top:32px}
+    .wrap{max-width:1160px;gap:18px}
+    header h1{font-size:40px}
+    .cols{display:grid;grid-template-columns:minmax(360px,400px) 1fr;gap:18px;align-items:start}
+    .col{display:flex;flex-direction:column;gap:18px}
+    .card{padding:20px}
+    .dot{width:100%;max-width:56px;height:46px}
+    .day .dot{font-size:22px}
+    .go{padding:24px 18px}
+    .a-foot{display:none}
+  }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="wrap">
+  <header class="a-head">
+    <h1>Sweat<span>.</span>Pact</h1>
+    <div class="wk" id="wk"></div>
+  </header>
+
+  <div class="banner hide a-banner" id="banner"></div>
+
+  <div class="cols">
+    <div class="col">
+      <section class="card a-duel">
+        <div class="duel" id="duel"></div>
+        <div class="taunt" id="taunt"></div>
+      </section>
+      <button class="go a-go" id="go"></button>
+      <section class="card a-dare">
+        <div class="row-title"><span>Loser's dare</span><span id="pactS"></span></div>
+        <div id="dare"></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="card a-week">
+        <div class="row-title"><div class="wnav"><button id="wPrev" aria-label="Previous week">‹</button><span id="wLbl">This week</span><button id="wNext" aria-label="Next week">›</button></div><div class="legend" id="legend"></div></div>
+        <div class="week" id="week"></div>
+      </section>
+      <section class="card a-heat">
+        <div class="row-title"><span id="heatT">Last 16 weeks</span><span id="totals"></span></div>
+        <div class="heat" id="heat"></div>
+      </section>
+      <section class="card a-badges">
+        <div class="row-title"><span>Trophies</span></div>
+        <div class="badges" id="badges"></div>
+      </section>
+    </div>
+  </div>
+
+  <p class="foot">Not you? <a href="#" onclick="switchPerson();return false">Switch person</a></p>
+  <p class="foot a-foot">On your phone: open this link, then Share → <b>Add to Home Screen</b> (iPhone) or ⋮ → <b>Add to Home screen</b> (Android) for a one-tap shortcut.</p>
+</div>
+
+<!-- Workout type picker -->
+<div class="scrim" id="pickScrim">
+  <div class="sheet">
+    <h2 id="pickTitle">What did you crush?</h2>
+    <div id="sessList"></div>
+    <button class="add-another" id="addAnother">+ Add another workout</button>
+    <div id="formWrap">
+    <textarea class="note-in" id="noteIn" rows="2" maxlength="200" placeholder="Add a note (optional): new PR, felt strong, survived leg day…"></textarea>
+    <div class="hint" id="pickHint">Pick your workout to log it</div>
+    <div class="chips" id="chips"></div>
+    <div class="sheet-actions" id="editActs" style="display:none"><button class="btn-save" id="noteSave">Save</button><button class="btn-del" id="dayDel">Remove workout</button></div>
+    </div>
+    <button class="ghost" id="pickCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Who am I -->
+<div class="scrim" id="whoScrim">
+  <div class="sheet">
+    <h2>Who's this?</h2>
+    <p style="color:var(--mute);font-size:14px;margin:-6px 0 16px">Pick yourself once. This phone remembers you after that.</p>
+    <div id="whoList"></div>
+    <button class="add-another" id="whoNew">I'm new here, set me up</button>
+  </div>
+</div>
+
+<!-- No invite link -->
+<div class="scrim" id="gate">
+  <div class="sheet" style="text-align:center">
+    <div style="font-size:44px;margin-bottom:6px">🔒</div>
+    <h2>You need your invite link</h2>
+    <p style="color:var(--mute);font-size:15px;line-height:1.5">Sweat Pact is private. Open the full link your partner sent you (the one with the code after the #), and this device will remember it.</p>
+  </div>
+</div>
+
+<!-- Dare deck -->
+<div class="scrim" id="deckScrim">
+  <div class="sheet">
+    <h2>The dare deck</h2>
+    <p style="color:var(--mute);font-size:14px;margin:-6px 0 16px">Tap one to make it this week's dare. Loser sends proof by Sunday night.</p>
+    <div class="deck" id="deck"></div>
+    <button class="ghost" id="deckClose">Close</button>
+  </div>
+</div>
+
+<!-- Profile setup -->
+<div class="scrim" id="setupScrim">
+  <div class="sheet">
+    <h2 id="setupTitle">Join the pact</h2>
+    <div class="field"><label>Your name</label><input id="nickIn" maxlength="18" placeholder="e.g. Thierry"></div>
+    <div class="field"><label>Your character</label>
+      <div class="builder"><div class="prev" id="avPrev"></div>
+        <div class="side"><div style="font-size:13px;color:var(--mute);line-height:1.4">They blink, bounce, and react to how your week is going.</div>
+        <button class="dice" id="avRand" type="button">🎲 Surprise me</button></div></div>
+      <div class="sub">Body</div><div class="opts" id="optS"></div>
+      <div class="sub">Eyes</div><div class="opts" id="optE"></div>
+      <div class="sub">Extra</div><div class="opts" id="optA"></div>
+      <div class="sub">Color</div><div class="swatches" id="optC"></div>
+    </div>
+    <div class="field"><label>Your theme</label><div class="themes" id="themePick"></div></div>
+    <div class="field"><label>Workouts per week</label><div class="goal" id="goalPick"></div></div>
+    <button class="primary" id="setupSave">Let's go 🔥</button>
+    <button class="ghost" id="setupCancel">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const TYPES = [
+    ["🏋️","Lift"],["🥊","Muay Thai"],
+    ["🏃","Cardio"],["🧘","Yoga"],["🧗","Climbing"],
+    ["🤸","Mobility"],["⚡","Other"]
+  ];
+  const THEMES = {
+    daylight: {name:"Daylight", acc:"#9bd400", alt:"#ff5c8a", dark:false, onacc:"#141414", bg:"#f6f6f3", card:"#ffffff", line:"#e7e6e0", text:"#141414", mute:"#86857f", empty:"#efeee9"},
+    volt:     {name:"Volt",     acc:"#c6ff3d", alt:"#7cc8ff", dark:true},
+    ember:    {name:"Ember",    acc:"#ff7a3d", alt:"#ffd23d", dark:true},
+    ocean:    {name:"Ocean",    acc:"#4dd6ff", alt:"#9b8cff", dark:true},
+    blush:    {name:"Blush",    acc:"#ff5c9d", alt:"#c084fc", dark:false, bg:"#fff3f6", card:"#ffffff", line:"#f6d6e1", text:"#3a1d2b", mute:"#a8798c", empty:"#fde6ee"},
+    lavender: {name:"Lavender", acc:"#a77bff", alt:"#ff7eb6", dark:false, bg:"#f6f2ff", card:"#ffffff", line:"#e4dbfb", text:"#2a2140", mute:"#8b80a8", empty:"#efe9ff"},
+    peach:    {name:"Peach",    acc:"#ff8a65", alt:"#f06292", dark:false, bg:"#fff5ef", card:"#ffffff", line:"#f7dccd", text:"#3d2318", mute:"#a8826f", empty:"#fde9de"},
+  };
+  const DARK = {bg:"#0d0d10", card:"#16161b", line:"#26262e", text:"#f3f1ea", mute:"#8b8a93", empty:"#1e1e25"};
+  const themeOf = p => THEMES[p?.theme] || THEMES.daylight;
+  function applyTheme(mine, them) {
+    const t = themeOf(mine), pal = t.dark ? DARK : t, r = document.documentElement.style;
+    for (const k of ["bg","card","line","text","mute","empty"]) r.setProperty("--"+k, pal[k]);
+    r.setProperty("--onacc", t.onacc || (t.dark ? "#0d0d10" : "#ffffff"));
+    r.setProperty("--me", t.acc);
+    let tc = them ? themeOf(them).acc : "#ff5c8a";
+    if (tc === t.acc) tc = them ? themeOf(them).alt : t.alt;
+    r.setProperty("--them", tc);
+    document.querySelector('meta[name="theme-color"]').content = pal.bg;
+  }
+  // ---------- animated avatars ----------
+  const AV_COLORS = ["#9bd400","#ff5c8a","#a77bff","#4dd6ff","#ff8a65","#ffd23d","#4fd6a0","#3a3a46"];
+  const BODIES = [
+    {top:18, d:"M50 18C75 18 88 38 88 60C88 80 72 94 50 94C28 94 12 80 12 60C12 38 25 18 50 18Z"},
+    {top:10, d:"M50 10C71 10 81 29 81 52V74C81 87 68 94 50 94C32 94 19 87 19 74V52C19 29 29 10 50 10Z"},
+    {top:16, d:"M16 56C16 31 31 16 50 16C69 16 84 31 84 56V93L73 85L62 93L50 85L38 93L27 85L16 93Z"},
+    {top:22, d:"M31 22H69C82 22 88 29 88 42V76C88 88 82 94 69 94H31C18 94 12 88 12 76V42C12 29 18 22 31 22Z"},
+  ];
+  const hashStr = s => { let x = 0; for (const ch of String(s)) x = (x*31 + ch.charCodeAt(0)) | 0; return Math.abs(x); };
+  const randAv = () => ({s:Math.floor(Math.random()*4), e:Math.floor(Math.random()*4), a:Math.floor(Math.random()*7), c:AV_COLORS[Math.floor(Math.random()*AV_COLORS.length)]});
+  const avOf = (p, id) => {
+    if (p?.av) return p.av;
+    const x = hashStr(id || p?.nick || "x");
+    return {s:x%4, e:(x>>3)%4, a:(x>>5)%7, c:AV_COLORS[(x>>8)%AV_COLORS.length]};
+  };
+  const lum = hex => { const n = parseInt(hex.slice(1),16); return (0.299*(n>>16&255)+0.587*(n>>8&255)+0.114*(n&255))/255; };
+  function moodOf(p) {
+    if (!p) return "happy";
+    const t = today(), mon = monday(t), di = Math.round((t - mon)/864e5);
+    if (sess(p, key(t)).length) return "hyped";
+    const wc = weekCount(p, mon), goal = p.goal || 3;
+    if (wc >= goal) return "happy";
+    if (wc === 0 && di >= 3) return "sleepy";
+    if (wc < goal*(di+1)/7 - 1) return "meh";
+    return "happy";
+  }
+  function avatarSVG(av, mood = "happy", extra = "") {
+    const b = BODIES[av.s] || BODIES[0], c = av.c || AV_COLORS[0], dy = b.top - 18;
+    const ink = lum(c) < .35 ? "#fff" : "#1b1b1f";
+    const ex = 38, ex2 = 62, ey = 52;
+    let eyes = "";
+    if (mood === "sleepy") eyes = `<path d="M${ex-6} ${ey} Q${ex} ${ey+4} ${ex+6} ${ey}M${ex2-6} ${ey} Q${ex2} ${ey+4} ${ex2+6} ${ey}" stroke="${ink}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+    else if (av.e === 0) eyes = [ex,ex2].map(x => `<circle cx="${x}" cy="${ey}" r="5.5" fill="${ink}"/><circle cx="${x+2}" cy="${ey-2}" r="1.8" fill="${ink==="#fff"?"#1b1b1f":"#fff"}"/>`).join("");
+    else if (av.e === 1) eyes = [ex,ex2].map(x => `<circle cx="${x}" cy="${ey}" r="9.5" fill="#fff"/><circle cx="${x+1.5}" cy="${ey+1}" r="5.5" fill="#1b1b1f"/><circle cx="${x+3.5}" cy="${ey-1.5}" r="2" fill="#fff"/>`).join("");
+    else if (av.e === 2) eyes = `<path d="M${ex-6} ${ey+2} Q${ex} ${ey-7} ${ex+6} ${ey+2}M${ex2-6} ${ey+2} Q${ex2} ${ey-7} ${ex2+6} ${ey+2}" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    else eyes = `<rect x="${ex-11}" y="${ey-7}" width="21" height="13" rx="5" fill="#1b1b1f"/><rect x="${ex2-10}" y="${ey-7}" width="21" height="13" rx="5" fill="#1b1b1f"/><path d="M${ex+10} ${ey-3}H${ex2-10}" stroke="#1b1b1f" stroke-width="3"/><path d="M${ex-7} ${ey-4}l5 0M${ex2-6} ${ey-4}l5 0" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round"/>`;
+    const my = 67;
+    const mouth = mood === "hyped" ? `<path d="M41 ${my-2}Q50 ${my+12} 59 ${my-2}Z" fill="${ink}"/><path d="M45 ${my+3.5}Q50 ${my+7} 55 ${my+3.5}" fill="#ff7a9a"/>`
+      : mood === "meh" ? `<path d="M44 ${my+1}Q50 ${my-2} 56 ${my+1}" stroke="${ink}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+      : mood === "sleepy" ? `<circle cx="50" cy="${my+1}" r="3" fill="${ink}"/>`
+      : `<path d="M42 ${my-1}Q50 ${my+7} 58 ${my-1}" stroke="${ink}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+    const accs = [
+      "",
+      `<g transform="translate(0 ${dy})"><rect x="19" y="30" width="62" height="9" rx="4.5" fill="#fff"/><rect x="19" y="33" width="62" height="3" fill="#ff4d6d"/><path d="M80 33l9 -5l-1 7zM80 36l10 3l-6 4z" fill="#ff4d6d"/></g>`,
+      `<g transform="translate(0 ${dy})"><path d="M24 30Q26 6 50 6Q74 6 76 30Z" fill="#26262e"/><path d="M60 27H92Q94 31 89 33H58Z" fill="#26262e"/><circle cx="50" cy="7" r="3" fill="#ff4d6d"/></g>`,
+      `<g transform="translate(0 ${dy})"><path d="M66 22L56 14L58 28ZM66 22L78 12L77 28Z" fill="#ff6fa5"/><circle cx="66" cy="21" r="3.5" fill="#ff3d87"/></g>`,
+      `<g transform="translate(0 ${dy})"><path d="M50 19V7" stroke="#3aa655" stroke-width="3" stroke-linecap="round"/><path d="M50 9C42 9 38 4 37 0C45 0 50 4 50 9ZM50 9C56 8 61 3 62 -2C54 -2 50 3 50 9Z" fill="#4fd36e"/></g>`,
+      `<g transform="translate(0 ${dy})"><path d="M30 25L26 6L40 20ZM70 25L74 6L60 20Z" fill="#ff6a3d"/></g>`,
+      `<g transform="translate(0 ${dy})" class="ant"><path d="M50 19Q52 8 50 -1" stroke="${ink}" stroke-width="2.5" fill="none"/><circle cx="50" cy="-3" r="5" fill="#ffd23d"/></g>`,
+    ];
+    const fx = mood === "hyped"
+      ? `<path class="spk" d="M12 20l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#ffd23d"/><path class="spk" d="M88 28l1.6 4.4 4.4 1.6-4.4 1.6L88 40l-1.6-4.4L82 34l4.4-1.6z" fill="#ffd23d"/><path class="spk" d="M84 72l1.4 3.6 3.6 1.4-3.6 1.4L84 82l-1.4-3.6L79 77l3.6-1.4z" fill="${c}"/><path d="M84 46q3 6 0 8q-3-2 0-8z" fill="#7cc8ff"/>`
+      : mood === "sleepy" ? `<text class="zz" x="76" y="30" font-size="14" font-weight="800" fill="var(--mute)" font-family="sans-serif">z</text><text class="zz" x="82" y="22" font-size="10" font-weight="800" fill="var(--mute)" font-family="sans-serif">z</text>` : "";
+    return `<svg class="av ${mood} ${extra}" viewBox="0 0 100 100" aria-hidden="true">
+      <ellipse class="shd" cx="50" cy="97" rx="28" ry="4" fill="rgba(0,0,0,.12)"/>
+      <g class="bod">
+        <path d="${b.d}" fill="${c}"/>
+        <path d="${b.d}" fill="url(#avShade)"/>
+        <ellipse cx="34" cy="${b.top+14}" rx="9" ry="5" fill="rgba(255,255,255,.4)" transform="rotate(-25 34 ${b.top+14})"/>
+        <ellipse cx="29" cy="63" rx="6" ry="3.5" fill="#ff7a9a" opacity=".45"/><ellipse cx="71" cy="63" rx="6" ry="3.5" fill="#ff7a9a" opacity=".45"/>
+        <g class="eyes">${eyes}</g>${mouth}${accs[av.a] || ""}
+      </g>${fx}</svg>`;
+  }
+  // shared gradient for avatar shading
+  document.body.insertAdjacentHTML("afterbegin", `<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="avShade" x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient></defs></svg>`);
+
+  const EMOJIS = ["🦍","🐺","🦁","🐯","🦈","🐉","🦅","🐻","🦖","🤖","🐗","🦬","🦄","🦋","🦩","🐰","🐱","🌸"];
+  const HYPE = [
+    "Another brick in the wall. 🧱","Future you says thanks.","That's how it's done.",
+    "Discipline > motivation.","The streak lives. 🔥","Beast mode: logged.",
+    "Consistency is the cheat code.","No days off from showing up.","You vs. you. You won.",
+    "Sweat banked. 💰"
+  ];
+  const DARES = {
+    "📖 Story time": [
+      "Voice note: your most embarrassing teenage story, 2+ minutes, no skipping the cringe parts.",
+      "Tell the story of the best night out of your life, in full detail.",
+      "The weirdest job or gig you've ever had, and the strangest thing that happened there.",
+      "A childhood memory with your family that still makes you laugh.",
+      "A time you were completely lost (literally or in life) and how you found your way.",
+      "A story you've never posted anywhere or told on a date.",
+    ],
+    "🌊 Deep share": [
+      "Something you're afraid people would judge you for, and why.",
+      "A belief you held for years that you've completely changed your mind on.",
+      "The moment you felt most proud of yourself. Not a job title, a moment.",
+      "What you'd go after if you knew you couldn't fail, and what's actually stopping you.",
+      "Something you've been avoiding lately, and what it's really about.",
+      "Write a short letter to your 15-year-old self and send a photo of it.",
+      "What do you need more of right now? Be honest, no polished answer.",
+    ],
+    "🪞 Personal": [
+      "Photo from your camera roll exactly one year ago, plus the story behind it.",
+      "Your top 5 songs right now, and why one of them hits deep.",
+      "Show your view right now and describe your perfect lazy Sunday.",
+      "3 things you're grateful for today, as a voice note.",
+      "One goal for next month, and exactly how the winner should hold you to it.",
+      "A tour of your fridge or your bag, narrated, no cleaning up first.",
+    ],
+    "🎬 On camera": [
+      "30-second dance video to a song the winner picks. Full commitment.",
+      "Lip-sync a whole chorus of the winner's choice, with feeling.",
+      "10 burpees on video, narrated like a nature documentary.",
+      "Recreate a famous movie scene, solo, every role yourself.",
+      "Cook something and present it like a TV chef for 1 minute.",
+      "Wear the most ridiculous outfit you own on your next video call.",
+      "Teach the winner a dance move on video, then they have to try it.",
+      "Sing happy birthday to the winner in your worst opera voice.",
+    ],
+    "🎉 Fun & remote": [
+      "The winner picks your profile picture for 48 hours.",
+      "Winner chooses a movie or album; you watch or listen and send a 3-line review.",
+      "Write a short poem about the winner's week and send it as a voice note.",
+      "Compliment bomb: 10 genuine compliments for the winner, one voice note.",
+      "Host a 20-minute video hangout: you plan the game or quiz.",
+      "Draw the winner from memory and send it. No retries.",
+      "Read the winner's last text out loud in your worst accent.",
+      "Learn and say 5 phrases in a language the winner picks.",
+      "Send the winner a small treat (e-gift or delivery, about $5–10).",
+    ],
+  };
+  const ALL_DARES = Object.entries(DARES).flatMap(([c,l]) => l.map(t => ({c,t})));
+  const MILESTONES = [
+    {n:1,  icon:"🌱", name:"First rep"},
+    {n:10, icon:"💪", name:"10 sessions"},
+    {n:25, icon:"⚡", name:"25 sessions"},
+    {n:50, icon:"🏆", name:"50 sessions"},
+    {n:100,icon:"👑", name:"100 club"},
+  ];
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  // ---------- dates ----------
+  const pad = n => String(n).padStart(2,"0");
+  const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+  const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+  const monday = d => { const x = new Date(d); const w = (x.getDay()+6)%7; x.setDate(x.getDate()-w); return x; };
+
+  // ---------- state ----------
+  let db = null, me = null, people = {}, pact = {}, mode = "loading", readOnly = false;
+  let pendingDay = null, justLogged = null, weekOff = 0, weekAnim = "";
+
+  const myP = () => people[me];
+  const others = () => Object.keys(people).filter(id => id !== me).map(id => [id, people[id]]);
+
+  const weekCount = (p, mon) => {
+    let c = 0; for (let i=0;i<7;i++) if (p.log && p.log[key(addDays(mon,i))]) c++; return c;
+  };
+  const weekStreak = (p) => {
+    let mon = monday(today()), s = 0;
+    const goal = p.goal || 3;
+    if (weekCount(p, mon) >= goal) s++;
+    mon = addDays(mon,-7);
+    while (weekCount(p, mon) >= goal && s < 520) { s++; mon = addDays(mon,-7); }
+    return s;
+  };
+  // A day holds a list of sessions. Older saves kept one emoji per day plus a separate note; read both shapes.
+  const MAX_PER_DAY = 5;
+  function sess(p, k) {
+    const v = p?.log?.[k];
+    if (!v) return [];
+    if (Array.isArray(v)) return v.map(x => typeof x === "string" ? {e:x} : {e:x.e, n:x.n}).filter(x => x.e);
+    return [{e: v, n: p.notes?.[k]}];
+  }
+  function putSess(p, k, list) {
+    const log = {...(p.log||{})}, notes = {...(p.notes||{})};
+    const clean = list.filter(x => x.e).slice(0, MAX_PER_DAY).map(x => { const n = (x.n||"").trim().slice(0,200); return n ? {e:x.e, n} : {e:x.e}; });
+    if (clean.length) log[k] = clean; else delete log[k];
+    delete notes[k];
+    p.log = log; p.notes = notes;
+  }
+  const total = p => Object.keys(p.log || {}).reduce((s,k) => s + sess(p,k).length, 0);
+  const typeName = e => (TYPES.find(x => x[0] === e) || [e,"Workout"])[1];
+  const pactStreak = () => {
+    const ps = Object.values(people); if (ps.length < 2) return 0;
+    let mon = monday(today()), s = 0;
+    const hit = m => ps.every(p => weekCount(p,m) >= (p.goal||3));
+    if (hit(mon)) s++;
+    mon = addDays(mon,-7);
+    while (hit(mon) && s < 520) { s++; mon = addDays(mon,-7); }
+    return s;
+  };
+
+  // ---------- persistence ----------
+  const LS = "sweatpact-preview";
+  const writeQ = {};
+  // ---------- Supabase storage (via two locked-down RPC functions) ----------
+  const SUPA_URL = "https://usgekebibxmbfjodiovn.supabase.co";
+  const SUPA_KEY = "sb_publishable_knkEGpeYdg4y-ydBQItKUA_vjyMA0bL";
+  const ME_KEY = p => "sweatpact:me:" + p;
+  let pactId = null, pendingWrites = 0, lastSeen = "";
+  async function rpc(fn, args) {
+    const r = await fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, {
+      method: "POST",
+      headers: Object.assign({"Content-Type":"application/json", apikey: SUPA_KEY}, SUPA_KEY.startsWith("eyJ") ? {Authorization: `Bearer ${SUPA_KEY}`} : {}),
+      body: JSON.stringify(args)
+    });
+    if (!r.ok) { const t = await r.text().catch(() => ""); throw new Error(r.status + " " + t); }
+    const txt = await r.text(); return txt ? JSON.parse(txt) : null;
+  }
+  function queueWrite(path, data) {
+    writeQ[path] = (writeQ[path] || Promise.resolve()).then(async () => {
+      if (mode === "local") {
+        try { localStorage.setItem(LS, JSON.stringify({people, pact})); } catch(e){}
+        return;
+      }
+      pendingWrites++;
+      try { await rpc("sweatpact_put", {p_pact: pactId, p_path: path, p_data: data}); }
+      catch (e) {
+        await new Promise(r => setTimeout(r, 800 + Math.random()*800));
+        try { await rpc("sweatpact_put", {p_pact: pactId, p_path: path, p_data: data}); }
+        catch (e2) { toast("Couldn't save. Check your connection."); }
+      } finally { pendingWrites--; }
+    });
+    return writeQ[path];
+  }
+  const saveMe = () => queueWrite("people/"+me, JSON.parse(JSON.stringify(myP())));
+
+  // ---------- render ----------
+  function ringSVG(frac, color) {
+    const r = 44, c = 2*Math.PI*r, off = c*(1-Math.min(frac,1));
+    return `<svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="${r}" fill="none" stroke="var(--empty)" stroke-width="7"/>
+      <circle cx="48" cy="48" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" style="--c:${c};transition:stroke-dashoffset .6s ease"/></svg>`;
+  }
+
+  function render() {
+    const t = today(), mon = monday(t);
+    const end = addDays(mon,6);
+    const fmt = d => d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    $("#wk").innerHTML = `Week of<br><b style="color:var(--text)">${fmt(mon)} – ${fmt(end)}</b>`;
+
+    if (mode === "loading") { $("#duel").innerHTML = `<div></div><div class="vs">Loading…</div><div></div>`; return; }
+
+    const mine = myP();
+    const [oid, them] = others()[0] || [null, null];
+
+    applyTheme(mine, them);
+    // Duel
+    const pcard = (p, isMe) => {
+      if (!p) return `<div class="player"><div class="empty-slot">Waiting for your partner</div><div class="nick" style="color:var(--mute)">?</div><div class="stat">send them the link</div></div>`;
+      const wc = weekCount(p, mon), goal = p.goal || 3, ws = weekStreak(p);
+      const pid = isMe ? me : oid;
+      return `<div class="player ${isMe?'mine':''}">
+        <div class="ring" data-poke="${isMe?'me':'them'}">${ringSVG(wc/goal, isMe?'var(--me)':'var(--them)')}<div class="emo">${avatarSVG(avOf(p, pid), moodOf(p))}</div>
+          <span class="crown" data-crown="${isMe?'me':'them'}" style="display:none">👑</span></div>
+        <div class="nick">${esc(p.nick||"?")}${isMe?' <span style="color:var(--mute);font-weight:400">(you)</span>':''}</div>
+        <div class="stat"><b>${wc}</b>/${goal} this week</div>
+        <div class="stat">${ws>0?`🔥 <b>${ws}</b> wk streak`:'no streak yet'}</div>
+        ${isMe && !readOnly ? '<button class="edit-me" data-edit="1">Edit character</button>' : ''}
+      </div>`;
+    };
+    $("#duel").innerHTML = pcard(mine, true) + `<div class="vs">VS</div>` + pcard(them, false);
+    const ed = document.querySelector('[data-edit]'); if (ed) ed.onclick = () => openSetup(true);
+    document.querySelectorAll('[data-poke]').forEach(r => r.onclick = () => {
+      const sv = r.querySelector(".av"); if (!sv) return;
+      sv.classList.remove("poke"); void sv.getBoundingClientRect(); sv.classList.add("poke");
+      setTimeout(() => sv.classList.remove("poke"), 700);
+      const lines = r.dataset.poke === "me" ? ["Hey! 😆","Boing!","Stop that 😤","Hehe","Again? 💪"] : ["Poke! 👉","Wake up and train!","Boop 😜","Your move…"];
+      toast(lines[Math.floor(Math.random()*lines.length)]);
+    });
+
+    // crown + taunt
+    let taunt = "";
+    if (mine && them) {
+      const a = weekCount(mine,mon)/(mine.goal||3), b = weekCount(them,mon)/(them.goal||3);
+      if (a > b) { show('[data-crown="me"]'); taunt = `You're leading. Don't get comfortable.`; }
+      else if (b > a) { show('[data-crown="them"]'); taunt = `<b>${esc(them.nick)}</b> is ahead. Unacceptable. 😤`; }
+      else taunt = a === 0 ? "Fresh week. First one to move wins." : "Dead even. Somebody break the tie.";
+      if (a >= 1 && b >= 1) taunt = "Both goals hit. The pact is honored. 🤝";
+    } else if (mine) taunt = "Send the link to your partner so they can join.";
+    $("#taunt").innerHTML = taunt;
+
+    // Big button
+    const go = $("#go");
+    if (!mine) { go.className = "go a-go"; go.innerHTML = "Join the pact"; go.onclick = () => openSetup(false); }
+    else {
+      const tk = key(t), ss = sess(mine, tk);
+      if (ss.length) {
+        const head = ss.length === 1 ? `${esc(ss[0].e)} ${esc(typeName(ss[0].e))} logged today` : `${ss.map(s => esc(s.e)).join(" ")} ${ss.length} workouts today 🔥`;
+        const n1 = ss.length === 1 && ss[0].n ? "💬 " + esc(ss[0].n.slice(0,60)) + " · " : "";
+        go.className = "go a-go done"; go.innerHTML = `${head}<small>${n1}Tap to add another or edit</small>`;
+        go.onclick = () => openPicker(tk);
+      } else {
+        go.className = "go a-go"; go.innerHTML = `I trained today 💪`;
+        go.onclick = () => openPicker(tk);
+      }
+      go.disabled = readOnly; go.style.opacity = readOnly ? .5 : 1;
+    }
+
+    // legend
+    $("#legend").innerHTML = (mine?`<span><i style="background:var(--me)"></i>${esc(mine.nick)}</span>`:"") +
+      (them?`<span><i style="background:var(--them)"></i>${esc(them.nick)}</span>`:"");
+
+    // week
+    const days = ["M","T","W","T","F","S","S"];
+    const vmon = addDays(mon, 7*weekOff);
+    const rng = `${vmon.toLocaleDateString(undefined,{month:"short",day:"numeric"})}–${addDays(vmon,6).toLocaleDateString(undefined,{day:"numeric"})}`;
+    $("#wLbl").innerHTML = (weekOff === 0 ? "This week" : "Last week") + `<em>${rng}</em>`;
+    $("#wPrev").disabled = weekOff <= -1; $("#wNext").disabled = weekOff >= 0;
+    $("#wPrev").onclick = () => { if (weekOff > -1) { weekOff--; weekAnim = "from-left"; render(); } };
+    $("#wNext").onclick = () => { if (weekOff < 0) { weekOff++; weekAnim = "from-right"; render(); } };
+    let wh = "";
+    for (let i=0;i<7;i++) {
+      const d = addDays(vmon,i), k = key(d), fut = d > t, isT = +d === +t;
+      const ms = sess(mine, k), ts = sess(them, k);
+      const face = ss => ss.length ? `<span class="faces">${ss.slice(0,3).map(s => esc(s.e)).join("")}</span>` : "";
+      const cls = ss => `${ss.length?'on':''} ${ss.length>1?'multi n'+Math.min(ss.length,3):''}`;
+      const tip = (who, ss) => {
+        const hasNote = ss.some(s => s.n);
+        if (!hasNote && ss.length < 2) return "";
+        const body = ss.map(s => `<div class="tl">${esc(s.e)} <span>${esc(typeName(s.e))}${s.n ? " · " + esc(s.n) : ""}</span></div>`).join("");
+        return `${hasNote ? '<span class="nb">💬</span>' : ''}${ss.length>1 ? `<span class="cnt">${ss.length}</span>` : ''}<span class="tip"><b>${esc(who)}</b>${body}</span>`;
+      };
+      const tipOn = ss => ss.some(s => s.n) || ss.length > 1 ? 'has-note' : '';
+      wh += `<div class="day ${isT?'today':''}"><div class="lbl">${days[i]}</div>
+        <div class="dot me ${cls(ms)} ${tipOn(ms)} ${fut?'future':''} ${k===justLogged?'pop':''}" data-k="${k}" ${fut?'':'role="button"'}>${face(ms)}${tip(mine?.nick||"You", ms)}</div>
+        ${them?`<div class="dot them ${cls(ts)} ${tipOn(ts)} ${fut?'future':''}">${face(ts)}${tip(them.nick, ts)}</div>`:''}
+      </div>`;
+    }
+    $("#week").innerHTML = wh;
+    $("#week").className = "week " + weekAnim; weekAnim = "";
+    document.querySelectorAll(".dot.them.has-note").forEach(el => el.onclick = ev => {
+      ev.stopPropagation();
+      const was = el.classList.contains("show");
+      document.querySelectorAll(".dot.show").forEach(x => x.classList.remove("show"));
+      if (!was) el.classList.add("show");
+    });
+    document.querySelectorAll(".dot.me:not(.future)").forEach(el => el.onclick = () => {
+      if (!mine || readOnly) return;
+      openPicker(el.dataset.k);
+    });
+
+    // dare
+    const ps = pactStreak();
+    $("#pactS").innerHTML = ps ? `🤝 pact kept ${ps} wk${ps>1?'s':''}` : "";
+    if (!dareEditing && !dareSpinning) renderDare(mine, them, mon);
+
+    // heatmap
+    const HW = innerWidth >= 900 ? 26 : 16;
+    $("#heatT").textContent = `Last ${HW} weeks`;
+    const start = addDays(mon, -(HW-1)*7);
+    let hh = "", mt = 0, tt = 0;
+    for (let w=0; w<HW; w++) for (let i=0;i<7;i++) {
+      const d = addDays(start, w*7+i), k = key(d);
+      if (d > t) { hh += `<div class="cell fut"></div>`; continue; }
+      const ma = sess(mine, k), tb = sess(them, k), a = ma.length > 0, b = tb.length > 0;
+      mt += ma.length; tt += tb.length;
+      const line = (who, ss) => ss.length ? `${who}: ` + ss.map(s => s.e + (s.n ? " " + s.n : "")).join(" + ") : "";
+      const ttl = [new Date(k+"T00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"}),
+        line(mine?.nick, ma), line(them?.nick, tb)].filter(Boolean).join("\n");
+      // one segment per workout: yours first, then hers
+      const segs = [...ma.map(() => "m"), ...tb.map(() => "t")].slice(0, 6);
+      const inner = segs.length > 1 ? segs.map(s => `<i class="${s}"></i>`).join("") : "";
+      const cc = segs.length > 1 ? "split" : a ? "m" : b ? "t" : "";
+      hh += `<div class="cell ${cc}" title="${esc(ttl)}" style="animation-delay:${(w*7+i)*3}ms">${inner}</div>`;
+    }
+    $("#heat").innerHTML = hh;
+    $("#heat").style.gridTemplateColumns = `repeat(${HW}, 1fr)`;
+    $("#totals").innerHTML = mine ? `<span style="color:var(--me)">${mt}</span>${them?` · <span style="color:var(--them)">${tt}</span>`:''}` : "";
+
+    // badges
+    const tot = mine ? total(mine) : 0, bestWs = mine ? weekStreak(mine) : 0;
+    const bl = MILESTONES.map(m => `<span class="badge ${tot>=m.n?'got':''}">${m.icon} ${m.name}</span>`);
+    bl.push(`<span class="badge ${bestWs>=4?'got':''}">📅 4-week streak</span>`);
+    bl.push(`<span class="badge ${ps>=4?'got':''}">🤝 Pact kept a month</span>`);
+    $("#badges").innerHTML = bl.join("");
+  }
+  const show = s => { const el = document.querySelector(s); if (el) el.style.display = "block"; };
+
+  // ---------- actions ----------
+  // Day sheet: list of the day's sessions, plus a form to add or edit one.
+  function openPicker(k) {
+    if (readOnly || !myP()) return;
+    pendingDay = k;
+    const ss = sess(myP(), k);
+    ss.length ? showDayList(k) : showForm(k, -1);
+    open("#pickScrim");
+  }
+  function dayName(k) {
+    return k === key(today()) ? "today" : new Date(k+"T00:00").toLocaleDateString(undefined,{weekday:"long"});
+  }
+  function showDayList(k) {
+    const ss = sess(myP(), k);
+    const dn = dayName(k);
+    $("#pickTitle").textContent = dn === "today" ? "Today's workouts" : `${dn[0].toUpperCase()+dn.slice(1)}'s workouts`;
+    $("#sessList").innerHTML = ss.map((s,i) => `<div class="srow"><span class="se">${esc(s.e)}</span>
+        <div class="st"><b>${esc(typeName(s.e))}</b>${s.n ? `<span>${esc(s.n)}</span>` : ""}</div>
+        <button class="sbtn" data-ed="${i}" aria-label="Edit">Edit</button></div>`).join("");
+    $("#sessList").style.display = "block";
+    $("#formWrap").style.display = "none";
+    const full = ss.length >= MAX_PER_DAY;
+    $("#addAnother").style.display = full ? "none" : "block";
+    $("#addAnother").textContent = ss.length === 1 ? "+ Add a second workout" : ss.length === 2 ? "+ Add a third workout" : "+ Add another workout";
+    $("#addAnother").onclick = () => showForm(k, -1);
+    document.querySelectorAll("#sessList [data-ed]").forEach(b => b.onclick = () => showForm(k, +b.dataset.ed));
+  }
+  function showForm(k, idx) {
+    const ss = sess(myP(), k), editing = idx >= 0, cur = editing ? ss[idx] : null;
+    let sel = cur?.e || null;
+    const dn = dayName(k);
+    const nth = ["", "a second", "a third", "a fourth", "a fifth"][ss.length] || "another";
+    $("#pickTitle").textContent = editing ? `Edit ${typeName(cur.e)}`
+      : ss.length ? `Add ${nth} workout` : (dn === "today" ? "What did you crush?" : `Backfill ${dn}`);
+    $("#noteIn").value = cur?.n || "";
+    $("#pickHint").textContent = editing ? "Workout type" : "Pick your workout to log it";
+    $("#editActs").style.display = editing ? "flex" : "none";
+    $("#sessList").style.display = "none";
+    $("#addAnother").style.display = "none";
+    $("#formWrap").style.display = "block";
+    const drawChips = () => {
+      $("#chips").innerHTML = TYPES.map(([e,n]) => `<button class="chip ${e===sel?'sel':''}" data-e="${e}"><span>${e}</span>${n}</button>`).join("");
+      document.querySelectorAll("#chips .chip").forEach(b => b.onclick = () => {
+        if (editing) { sel = b.dataset.e; drawChips(); }
+        else { close("#pickScrim"); addSession(k, b.dataset.e, $("#noteIn").value); }
+      });
+    };
+    drawChips();
+    $("#noteSave").onclick = () => {
+      const list = sess(myP(), k); list[idx] = {e: sel, n: $("#noteIn").value};
+      putSess(myP(), k, list); close("#pickScrim"); render(); saveMe(); toast("Updated ✍️");
+    };
+    $("#dayDel").onclick = () => {
+      const list = sess(myP(), k); list.splice(idx, 1);
+      putSess(myP(), k, list); close("#pickScrim"); render(); saveMe();
+      toast(list.length ? "Removed that one." : "Removed. No judgement… mostly.");
+    };
+  }
+  function addSession(k, e, note) {
+    const p = myP(), list = sess(p, k), wasEmpty = list.length === 0;
+    if (list.length >= MAX_PER_DAY) { toast(`${MAX_PER_DAY} in one day is the max. Go rest. 😅`); return; }
+    list.push({e, n: note});
+    putSess(p, k, list);
+    justLogged = k; setTimeout(() => { justLogged = null; }, 700);
+    render(); saveMe();
+    confetti();
+    try { navigator.vibrate && navigator.vibrate([15,40,25]); } catch(_){}
+    if (!wasEmpty) { toast(list.length === 2 ? "Double session. Absolute unit. 💥" : `Workout #${list.length} today?! Respect. 🫡`); return; }
+    const wc = weekCount(p, monday(today()));
+    if (wc === (p.goal||3)) toast("Weekly goal smashed! 🏆");
+    else toast(HYPE[Math.floor(Math.random()*HYPE.length)]);
+  }
+  let dareEditing = false, dareSpinning = false;
+  function currentDare() {
+    if (pact.dare) return {c: pact.cat || "✏️ Custom", t: pact.dare};
+    if (pact.stakes) return {c: "✏️ Custom", t: pact.stakes};
+    return null;
+  }
+  function renderDare(mine, them, mon) {
+    let who = "";
+    if (mine && them) {
+      const a = weekCount(mine,mon)/(mine.goal||3), b = weekCount(them,mon)/(them.goal||3);
+      if (a >= 1 && b >= 1) who = "Both goals hit. Nobody owes a dare this week… unless you want one. 😏";
+      else if (a > b) who = `If the week ended now, <b>${esc(them.nick)}</b> does the dare.`;
+      else if (b > a) who = `If the week ended now, <b>you</b> do the dare. 👀`;
+      else who = "Dead even right now. A tie means you <b>both</b> do it.";
+    } else who = "Whoever falls short of their weekly goal does the dare.";
+    const d = currentDare();
+    const can = mine && !readOnly;
+    $("#dare").innerHTML = `<div class="who">${who}</div>
+      <div class="dare-box" id="dareBox">${d ? `<span class="pill" id="dareCat">${esc(d.c)}</span><div class="dare-txt" id="dareTxt">${esc(d.t)}</div>`
+        : `<span class="pill" id="dareCat">No dare yet</span><div class="dare-txt" id="dareTxt" style="color:var(--mute)">Draw one from the deck to set this week's stakes.</div>`}</div>
+      ${can ? `<div class="dare-actions"><button class="main" id="dDraw">🎲 Draw</button><button id="dDeck">📜 Deck</button><button id="dOwn">✏️ Write</button></div>` : ""}`;
+    if (can) { $("#dDraw").onclick = drawDare; $("#dDeck").onclick = openDeck; $("#dOwn").onclick = writeDare; }
+  }
+  function setDare(c, t) {
+    pact = {...pact, dare: t, cat: c, stakes: null};
+    queueWrite("pact/main", {...pact});
+  }
+  function drawDare() {
+    if (dareSpinning) return;
+    dareSpinning = true;
+    const box = $("#dareBox"); box.classList.add("spin");
+    const cur = currentDare()?.t;
+    let pick; do { pick = ALL_DARES[Math.floor(Math.random()*ALL_DARES.length)]; } while (ALL_DARES.length > 1 && pick.t === cur);
+    let n = 0;
+    const iv = setInterval(() => {
+      const r = ALL_DARES[Math.floor(Math.random()*ALL_DARES.length)];
+      box.innerHTML = `<span class="pill">${esc(r.c)}</span><div class="dare-txt">${esc(r.t)}</div>`;
+      if (++n >= 14) {
+        clearInterval(iv); dareSpinning = false;
+        setDare(pick.c, pick.t); render(); confetti();
+      }
+    }, 70);
+  }
+  function openDeck() {
+    const cur = currentDare()?.t;
+    $("#deck").innerHTML = Object.entries(DARES).map(([c,l]) =>
+      `<h3>${esc(c)}</h3>` + l.map((t,i) => `<button data-c="${esc(c)}" data-i="${i}" class="${t===cur?'sel':''}">${esc(t)}</button>`).join("")).join("");
+    document.querySelectorAll("#deck button").forEach(b => b.onclick = () => {
+      const c = b.dataset.c, t = DARES[c][+b.dataset.i];
+      setDare(c, t); close("#deckScrim"); render(); toast("Dare locked in. 😈");
+    });
+    open("#deckScrim");
+  }
+  function writeDare() {
+    dareEditing = true;
+    const box = $("#dareBox"); const cur = currentDare();
+    box.innerHTML = `<span class="pill">✏️ Custom</span><textarea id="dareIn" rows="3" maxlength="160" placeholder="Make it spicy…">${cur && cur.c==="✏️ Custom" ? esc(cur.t) : ""}</textarea>`;
+    const acts = document.querySelector(".dare-actions");
+    acts.innerHTML = `<button class="main" id="dSave">Save</button><button id="dCancel">Cancel</button>`;
+    const inp = $("#dareIn"); inp.focus();
+    $("#dSave").onclick = () => { const v = inp.value.trim(); dareEditing = false; if (v) setDare("✏️ Custom", v); render(); };
+    $("#dCancel").onclick = () => { dareEditing = false; render(); };
+  }
+  $("#deckClose").onclick = () => close("#deckScrim");
+  let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (mode !== "loading") render(); }, 150); });
+
+  let setupEmoji = EMOJIS[0], setupGoal = 4, setupTheme = "daylight", setupAv = null;
+  function openSetup(editing) {
+    const p = myP();
+    $("#setupTitle").textContent = editing ? "Edit your profile" : "Join the pact";
+    $("#nickIn").value = p?.nick || "";
+    setupEmoji = p?.emoji || EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    setupGoal = p?.goal || 4;
+    setupTheme = p?.theme || "daylight";
+    const drawT = () => { $("#themePick").innerHTML = Object.entries(THEMES).map(([k,t]) => {
+        const bg = t.dark ? DARK.empty : t.bg, fg = t.dark ? DARK.text : t.text;
+        return `<button class="${k===setupTheme?'sel':''}" data-t="${k}" style="background:${bg};color:${fg}"><i style="background:${t.acc}"></i>${t.name}</button>`; }).join("");
+      document.querySelectorAll("#themePick button").forEach(b => b.onclick = () => { setupTheme = b.dataset.t; drawT(); previewTheme(); }); };
+    const previewTheme = () => applyTheme({...(p||{}), theme: setupTheme}, others()[0]?.[1]);
+    drawT();
+    setupAv = {...(p ? avOf(p, me) : randAv())};
+    const drawE = () => {
+      $("#avPrev").innerHTML = avatarSVG(setupAv, "hyped");
+      const row = (sel, n, prop) => { $(sel).innerHTML = Array.from({length:n}, (_,i) =>
+          `<button type="button" class="${setupAv[prop]===i?'sel':''}" data-i="${i}">${avatarSVG({...setupAv,[prop]:i}, "happy", "still")}</button>`).join("");
+        document.querySelectorAll(sel+" button").forEach(b => b.onclick = () => { setupAv[prop] = +b.dataset.i; drawE(); }); };
+      row("#optS", 4, "s"); row("#optE", 4, "e"); row("#optA", 7, "a");
+      $("#optC").innerHTML = AV_COLORS.map(c => `<button type="button" class="${setupAv.c===c?'sel':''}" data-c="${c}" style="background:${c}"></button>`).join("");
+      document.querySelectorAll("#optC button").forEach(b => b.onclick = () => { setupAv.c = b.dataset.c; drawE(); });
+    };
+    $("#avRand").onclick = () => { setupAv = randAv(); drawE(); };
+    const drawG = () => { $("#goalPick").innerHTML = [2,3,4,5,6,7].map(n => `<button class="${n===setupGoal?'sel':''}" data-n="${n}">${n}</button>`).join("");
+      document.querySelectorAll("#goalPick button").forEach(b => b.onclick = () => { setupGoal = +b.dataset.n; drawG(); }); };
+    drawE(); drawG();
+    $("#setupCancel").style.display = editing ? "block" : "none";
+    open("#setupScrim");
+    setTimeout(() => { if (!editing) $("#nickIn").focus(); }, 250);
+  }
+  $("#setupSave").onclick = () => {
+    const nick = $("#nickIn").value.trim();
+    if (!nick) { $("#nickIn").focus(); toast("Give yourself a name first"); return; }
+    const isNew = !myP();
+    people[me] = {...(myP()||{log:{}}), nick, av: {...setupAv}, goal: setupGoal, theme: setupTheme};
+    close("#setupScrim"); render(); saveMe();
+    if (isNew) { confetti(); toast(`Welcome, ${nick}. No excuses now. 😈`); }
+  };
+  $("#setupCancel").onclick = () => { close("#setupScrim"); render(); };
+  $("#pickCancel").onclick = () => close("#pickScrim");
+  document.querySelectorAll(".scrim").forEach(s => s.addEventListener("click", e => {
+    if (e.target === s && !["whoScrim","gate"].includes(s.id) && (s.id !== "setupScrim" || myP())) { close("#"+s.id); render(); }
+  }));
+  document.addEventListener("click", () => document.querySelectorAll(".dot.show").forEach(x => x.classList.remove("show")));
+  const open = s => $(s).classList.add("open");
+  const close = s => $(s).classList.remove("open");
+
+  let tt;
+  function toast(msg) { const el = $("#toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => el.classList.remove("show"), 2600); }
+  function banner(msg) { const b = $("#banner"); if (!msg) { b.classList.add("hide"); return; } b.textContent = msg; b.classList.remove("hide"); }
+
+  // ---------- confetti ----------
+  const cv = $("#fx"), cx = cv.getContext("2d"); let parts = [], raf = null;
+  function sizeCv(){ cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio; }
+  addEventListener("resize", sizeCv); sizeCv();
+  function confetti() {
+    const cs = getComputedStyle(document.documentElement);
+    const cols = [cs.getPropertyValue("--me").trim()||"#c6ff3d", cs.getPropertyValue("--them").trim()||"#ff5c8a","#ffd23d","#7cc8ff","#ffffff"];
+    const ox = innerWidth/2, oy = innerHeight*0.55;
+    for (let i=0;i<120;i++) parts.push({x:ox,y:oy,vx:(Math.random()-.5)*14,vy:-Math.random()*16-6,s:Math.random()*7+4,
+      c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4,life:0});
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    const d = devicePixelRatio; cx.clearRect(0,0,cv.width,cv.height);
+    parts = parts.filter(p => p.life < 140 && p.y < innerHeight+40);
+    for (const p of parts) {
+      p.life++; p.vy += .45; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      cx.save(); cx.translate(p.x*d,p.y*d); cx.rotate(p.r); cx.fillStyle = p.c;
+      cx.globalAlpha = Math.max(0,1-p.life/140); cx.fillRect(-p.s*d/2,-p.s*d/4,p.s*d,p.s*d/2); cx.restore();
+    }
+    raf = parts.length ? requestAnimationFrame(tick) : null;
+    if (!raf) cx.clearRect(0,0,cv.width,cv.height);
+  }
+
+  // ---------- boot ----------
+  function startLocal(reason) {
+    mode = "local"; me = "preview-me";
+    try { const s = JSON.parse(localStorage.getItem(LS) || "{}"); people = s.people || {}; pact = s.pact || {}; } catch(e){}
+    banner(reason);
+    render();
+    if (!myP()) openSetup(false);
+  }
+
+  document.body.classList.add("intro");
+  setTimeout(() => document.body.classList.remove("intro"), 2200);
+  render();
+
+  async function pull() {
+    if (pendingWrites > 0) return;
+    let rows;
+    try { rows = await rpc("sweatpact_get", {p_pact: pactId}); }
+    catch (e) { if (mode === "loading") banner("Can't reach your data yet. Check your connection."); return; }
+    if (pendingWrites > 0) return;
+    const sig = JSON.stringify(rows);
+    if (sig === lastSeen && mode !== "loading") return;
+    lastSeen = sig;
+    const next = {}; let nextPact = {};
+    for (const r of rows || []) {
+      if (r.path.startsWith("people/")) next[r.path.slice(7)] = r.data;
+      else if (r.path === "pact/main") nextPact = r.data || {};
+    }
+    people = next; pact = nextPact;
+    const first = mode === "loading"; mode = "live"; banner("");
+    if (!dareEditing && !dareSpinning) render();
+    if (first) whoAmI();
+  }
+  function whoAmI() {
+    if (me && people[me]) return;
+    const list = Object.entries(people);
+    if (!list.length) { me = newId(); openSetup(false); return; }
+    $("#whoList").innerHTML = list.map(([id,p]) =>
+      `<button class="who-btn" data-id="${esc(id)}"><span class="who-av">${avatarSVG(avOf(p,id),"happy","still")}</span><span>I'm <b>${esc(p.nick||"?")}</b></span></button>`).join("");
+    document.querySelectorAll("#whoList .who-btn").forEach(b => b.onclick = () => {
+      me = b.dataset.id; try { localStorage.setItem(ME_KEY(pactId), me); } catch(_){}
+      close("#whoScrim"); render(); toast(`Welcome back, ${people[me].nick}. 💪`);
+    });
+    $("#whoNew").onclick = () => { close("#whoScrim"); me = newId(); openSetup(false); };
+    open("#whoScrim");
+  }
+  const newId = () => { const a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; let s = "u_"; for (let i=0;i<16;i++) s += a[Math.floor(Math.random()*a.length)]; return s; };
+  window.switchPerson = () => { try { localStorage.removeItem(ME_KEY(pactId)); } catch(_){}; me = null; whoAmI(); };
+
+  (function boot() {
+    let fromHash = (location.hash || "").replace(/^#/, "").trim();
+    if (fromHash && /^[A-Za-z0-9]{20,64}$/.test(fromHash)) {
+      try { localStorage.setItem("sweatpact:pact", fromHash); } catch(_){}
+      pactId = fromHash;
+    } else {
+      try { pactId = localStorage.getItem("sweatpact:pact"); } catch(_){}
+      if (pactId && !location.hash) history.replaceState(null, "", "#" + pactId);
+    }
+    if (!pactId) {
+      $("#gate").classList.add("open");
+      return;
+    }
+    try { me = localStorage.getItem(ME_KEY(pactId)); } catch(_){}
+    pull();
+    setInterval(() => { if (!document.hidden) pull(); }, 8000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) pull(); });
+    addEventListener("focus", pull);
+  })();
+  // keep setup from creating a profile under an empty id
+  const _origSave = $("#setupSave").onclick;
+  $("#setupSave").onclick = () => { if (!me) me = newId(); try { localStorage.setItem(ME_KEY(pactId), me); } catch(_){}; _origSave(); };
+})();
+</script>
+</body>
+</html>
