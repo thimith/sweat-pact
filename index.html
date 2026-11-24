@@ -7,7 +7,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sweat Pact">
-<link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#f6f6f3">
@@ -349,6 +348,11 @@
     <div style="font-size:44px;margin-bottom:6px">🔒</div>
     <h2>You need your invite link</h2>
     <p style="color:var(--mute);font-size:15px;line-height:1.5">Sweat Pact is private. Open the full link your partner sent you (the one with the code after the #), and this device will remember it.</p>
+    <form id="gateForm" style="margin-top:18px;text-align:left">
+      <input class="note-in" id="gateIn" placeholder="Paste your invite link or code" autocomplete="off" autocapitalize="off" spellcheck="false" style="margin-bottom:10px">
+      <button class="primary" type="submit">Unlock 🔓</button>
+      <div id="gateErr" style="color:#e5484d;font-size:13px;margin-top:8px;display:none">That doesn't look like a Sweat Pact link. Copy the whole thing your partner sent.</div>
+    </form>
   </div>
 </div>
 
@@ -1059,6 +1063,13 @@
     }
     if (!pactId) {
       $("#gate").classList.add("open");
+      $("#gateForm").onsubmit = ev => {
+        ev.preventDefault();
+        const v = $("#gateIn").value.trim(), m = v.match(/([A-Za-z0-9]{20,64})\s*$/);
+        if (!m) { $("#gateErr").style.display = "block"; return; }
+        try { localStorage.setItem("sweatpact:pact", m[1]); } catch(_){}
+        location.hash = m[1]; location.reload();
+      };
       return;
     }
     try { me = localStorage.getItem(ME_KEY(pactId)); } catch(_){}
