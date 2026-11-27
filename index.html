@@ -231,7 +231,7 @@
   @media(min-width:700px){.scrim{align-items:center}.sheet{border-radius:26px}}
   @keyframes up{from{transform:translateY(40px);opacity:0}}
   .sheet h2{font-family:"Bricolage Grotesque";font-weight:800;font-size:24px;margin-bottom:14px}
-  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .chip{background:var(--empty);border:1px solid var(--line);color:var(--text);border-radius:16px;padding:14px 6px;font:inherit;font-size:14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
   .chip span{font-size:26px}
   .chip.sel{border-color:var(--me);background:color-mix(in srgb, var(--me) 10%, transparent)}
@@ -394,7 +394,7 @@
   const TYPES = [
     ["🏋️","Lift"],["🥊","Muay Thai"],
     ["🏃","Cardio"],["🧘","Yoga"],["🧗","Climbing"],
-    ["🤸","Mobility"],["⚡","Other"]
+    ["🛼","Inline skating"],["🤸","Mobility"],["⚡","Other"]
   ];
   const THEMES = {
     daylight: {name:"Daylight", acc:"#9bd400", alt:"#ff5c8a", dark:false, onacc:"#141414", bg:"#f6f6f3", card:"#ffffff", line:"#e7e6e0", text:"#141414", mute:"#86857f", empty:"#efeee9"},
