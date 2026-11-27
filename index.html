@@ -206,6 +206,30 @@
   .add-another:hover{border-color:var(--me)}
   .ico{width:1.1em;height:1.1em;display:inline-block;vertical-align:-0.18em;flex:none}
   .faces .ico{width:1em;height:1em}
+  /* Cheers */
+  .reacts{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .reacts button{font-size:26px;background:var(--empty);border:2px solid transparent;border-radius:14px;padding:10px 0;cursor:pointer;transition:transform .12s}
+  .reacts button:active{transform:scale(.9)}
+  .reacts button.sel{border-color:var(--me);background:color-mix(in srgb, var(--me) 14%, transparent);transform:scale(1.06)}
+  .rx{position:absolute;bottom:-7px;left:-7px;width:22px;height:22px;border-radius:50%;background:var(--card);border:1px solid var(--line);
+      font-size:12px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.12);pointer-events:none;animation:nbpop .4s cubic-bezier(.3,1.8,.5,1)}
+  .dot.them.on{cursor:pointer}
+  .scrim.pop{align-items:center;padding:20px}
+  .cheer-card{width:100%;max-width:360px;background:var(--card);border-radius:28px;padding:26px 22px 20px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.3);
+      animation:cheerIn .6s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes cheerIn{from{transform:scale(.6) translateY(40px);opacity:0}}
+  .cheer-card .cav{width:96px;height:96px;margin:0 auto 6px}.cheer-card .cav svg{width:100%;height:100%;overflow:visible}
+  .cheer-card .big-r{font-size:54px;line-height:1;margin:2px 0 8px;animation:rpop .9s .2s cubic-bezier(.2,1.8,.4,1) both}
+  .rain{position:fixed;inset:0;pointer-events:none;z-index:31;overflow:hidden}
+  .rain span{position:absolute;top:-60px;animation:fall linear both}
+  @keyframes fall{0%{transform:translate(0,0) rotate(0);opacity:0}8%{opacity:1}85%{opacity:1}100%{transform:translate(var(--drift),110vh) rotate(var(--rot));opacity:0}}
+  .cheer-card .big-r{animation:rpop .9s .2s cubic-bezier(.2,1.8,.4,1) both, wiggle 1.6s 1.2s ease-in-out infinite}
+  @keyframes wiggle{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-10deg) scale(1.08)}75%{transform:rotate(10deg) scale(1.08)}}
+  @keyframes rpop{from{transform:scale(0) rotate(-30deg)}}
+  .cheer-card .from{font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+  .cheer-card .msg{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:22px;line-height:1.25;margin:8px 0 6px;word-break:break-word}
+  .cheer-card .for{font-size:14px;color:var(--mute);margin-bottom:16px}
+  .cheer-card .for .ico{width:18px;height:18px}
   .who-btn{display:flex;align-items:center;gap:14px;width:100%;background:var(--empty);border:1px solid transparent;color:var(--text);border-radius:16px;padding:10px 14px;margin-bottom:8px;font:inherit;font-size:17px;cursor:pointer;text-align:left}
   .who-btn:hover{border-color:var(--me)}
   .who-av{width:52px;height:52px;flex:none}.who-av svg{width:100%;height:100%;overflow:visible}
@@ -255,7 +279,7 @@
   .primary{width:100%;margin-top:6px;border:none;border-radius:16px;padding:16px;background:var(--me);color:var(--onacc);font-family:"Bricolage Grotesque";font-weight:800;font-size:18px;cursor:pointer}
   .ghost{width:100%;margin-top:8px;border:none;background:none;color:var(--mute);font:inherit;padding:10px;cursor:pointer}
 
-  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--onacc);font-weight:600;
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(30px);opacity:0;background:var(--text);color:var(--bg);font-weight:600;
          padding:12px 18px;border-radius:999px;z-index:40;transition:all .3s;max-width:90vw;text-align:center;font-size:15px;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:30}
@@ -334,6 +358,24 @@
     </div>
     <button class="ghost" id="pickCancel">Cancel</button>
   </div>
+</div>
+
+<!-- Cheer sheet -->
+<div class="scrim" id="cheerScrim">
+  <div class="sheet">
+    <h2 id="cheerTitle">Cheer her on</h2>
+    <div id="cheerDay"></div>
+    <div class="hint">Send a reaction</div>
+    <div class="reacts" id="reacts"></div>
+    <textarea class="note-in" id="cheerMsg" rows="2" maxlength="140" placeholder="Add a quick message (optional)" style="margin-top:12px"></textarea>
+    <button class="primary" id="cheerSend">Send 💌</button>
+    <button class="ghost" id="cheerCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Incoming cheer -->
+<div class="scrim pop" id="popScrim">
+  <div class="cheer-card" id="popCard"></div>
 </div>
 
 <!-- Who am I -->
@@ -598,6 +640,13 @@
   // Fluent Emoji Flat (Microsoft, MIT) bundled in, so icons look the same on every device.
   const ICONS = {"🏋️": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#533566\" d=\"M11 30v-2.5l-1.898.5s-.53.38-1.917 1.2c-.307.18-.14.8-.14.8zm10.01 0L21 27.5l1.892.5s.36.38 1.92 1.2c.312.16.142.8.142.8z\"/><path fill=\"#ffc83d\" d=\"M14.5 14.878L12.323 16L7.86 7.013c-.254-.516-.058-.665.44-.924l.244-.06c-.489.25 2.313 1.51 1.552-.029zm3 0L19.677 16l4.462-8.987c.254-.516.058-.665-.44-.924l-.244-.06c.489.25-2.313 1.51-1.552-.029z\"/><path fill=\"#ff6723\" d=\"M21.155 13.483a.253.253 0 0 0-.112-.324L18.5 11.8L18 14l.04.07a3.84 3.84 0 0 0-2.04-.6c-.74 0-1.43.22-2.02.59l.03-.06l-.46-2.2l-2.59 1.36a.253.253 0 0 0-.115.325c.293.67 1.155 2.744 1.155 3.865V22h8v-4.65c0-1.122.864-3.198 1.155-3.867\"/><path fill=\"#f1a11e\" d=\"M13.4 13c.13.09.28.15.45.15l.05.72c.03.21.08.4.17.58c-.4-.16-.67-.55-.67-.99zm4.6 1.43c.08-.17.13-.36.16-.56l.05-.72c.15-.01.3-.06.42-.15v.46c0 .42-.25.8-.63.97\"/><path fill=\"#fdbb11\" d=\"M14.5 12.82a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0m4.5 0a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0\"/><path fill=\"#ffc83d\" d=\"M16.53 9.28h-1.064c-1.189 0-2.088 1.02-1.952 2.286l.174 2.801c.125.95.918 1.663 1.856 1.663h.909c.938 0 1.73-.713 1.856-1.663l.174-2.8c.155-1.218-.764-2.287-1.953-2.287\"/><path fill=\"#990839\" d=\"M15.993 14.68c-.24 0-.453-.06-.64-.17c-.062-.04-.134.04-.09.11c.16.27.428.45.739.45c.31 0 .578-.18.738-.45c.035-.07-.027-.15-.09-.11a1.35 1.35 0 0 1-.657.17\"/><path fill=\"#ed9200\" d=\"m15.82 13.135l-.26.84c-.05.17.08.35.25.35h.38c.18 0 .31-.17.25-.35l-.26-.84c-.04-.18-.3-.18-.36 0\"/><path fill=\"#fff\" d=\"M14.253 13.19a.644.644 0 0 1 .629-.49c.314 0 .582.222.628.517a.103.103 0 0 1-.102.13h-1.035a.128.128 0 0 1-.12-.157m3.507 0a.644.644 0 0 0-.628-.49a.63.63 0 0 0-.628.517c-.019.074.037.13.101.13h1.035a.128.128 0 0 0 .12-.157\"/><path fill=\"#7d4533\" d=\"M14.567 13.236c0-.231.185-.416.416-.416c.222 0 .407.185.416.416c0 .037-.01.074-.018.11h-.795a.5.5 0 0 1-.019-.11m2.879 0a.414.414 0 0 0-.416-.416a.426.426 0 0 0-.416.416c0 .037.01.074.019.11h.795a.5.5 0 0 0 .018-.11\"/><path fill=\"#fff\" d=\"M14.908 13.07a.073.073 0 1 1-.147-.001a.073.073 0 0 1 .147 0m2.075.001a.073.073 0 1 1-.147 0a.073.073 0 0 1 .147 0\"/><path fill=\"#000\" d=\"M14.974 12.996c.139 0 .24.11.24.24q.002.056-.037.11h-.416a.24.24 0 0 1 .213-.351m2.066.001c-.139 0-.24.11-.24.24c0 .037.009.074.037.11h.415a.24.24 0 0 0-.213-.351\"/><path fill=\"#d37034\" d=\"M14.322 12.03h.002l.01-.002l.044-.003q.061-.005.167.007a1.1 1.1 0 0 1 .506.194a.137.137 0 0 0 .158-.223a1.37 1.37 0 0 0-.923-.245h-.006l-.001.001h-.002a.137.137 0 0 0 .045.27m3.542-.085a.137.137 0 0 0-.105-.163l-.003-.001l-.005-.001l-.018-.003l-.061-.008a1.4 1.4 0 0 0-.855.21a.137.137 0 0 0 .146.233a1.12 1.12 0 0 1 .683-.17l.055.008a.137.137 0 0 0 .163-.105\"/><path fill=\"#9b9b9b\" d=\"m23.05 20l-3.12 2h-7.81L9 20l.45 3.17l.55.93c2.26 1.35 3.39 1.9 6.02 1.9s3.72-.7 5.98-2.06l.5-.93z\"/><path fill=\"#ffc83d\" d=\"m9.14 28l-.46-5.04h2.93L11 28zM21 28l-.53-5.04h2.77L22.86 28z\"/><path fill=\"#f1a11e\" d=\"M18.853 10.61c-.14-.25-.355-.43-.588-.52c-.26-.1-.484-.28-.633-.53a1.056 1.056 0 0 0-1.36-.47a.68.68 0 0 1-.56 0c-.13-.06-.27-.09-.429-.09c-.391 0-.727.22-.922.54c-.15.26-.373.45-.644.55c-.251.09-.465.28-.605.56c-.177.39-.14.86.084 1.21a.8.8 0 0 1 .125.345a.75.75 0 0 1 .322-.127v-.088c0-.92.699-1.67 1.556-1.67h.597c.13 0 .242.08.289.21c.186.43.587.71 1.034.71h.652c.355.02.634.33.643.71l-.008.136a.75.75 0 0 1 .292.132a.8.8 0 0 1 .127-.358c.214-.36.242-.84.027-1.25\"/><path fill=\"#9b9b9b\" d=\"M2 6.13A.13.13 0 0 1 2.13 6H3v1h-.87A.13.13 0 0 1 2 6.87zM26 6H6v1h20zm3.87 0a.13.13 0 0 1 .13.13v.74a.13.13 0 0 1-.13.13H29V6z\"/><path fill=\"#533566\" d=\"M8.515 23h2.96a.533.533 0 0 0 .525-.515V21c0-1.101-.899-2-2-2s-2 .899-2 2v1.485c0 .283.232.515.515.515m11.591 0h2.798a.593.593 0 0 0 .596-.606V21c0-1.101-.9-2-2-2s-2 .899-2 2v1.394c0 .333.273.606.606.606\"/><path fill=\"#ffc83d\" d=\"M9.75 5.375a.375.375 0 1 0-.75 0V5.5h-.007a.375.375 0 0 0-.736 0H8.23a.375.375 0 0 0-.729.125v.5a.375.375 0 0 0 .729.125h.022a.375.375 0 0 0 .748 0v.125a.375.375 0 1 0 .75 0a.375.375 0 1 0 .75 0v-.75a.375.375 0 0 0-.729-.125H9.75zm12.5 0a.375.375 0 0 1 .75 0V5.5h.008a.375.375 0 0 1 .735 0h.028a.375.375 0 0 1 .729.125v.5a.375.375 0 0 1-.729.125h-.022a.375.375 0 0 1-.748 0L23 6.375a.375.375 0 0 1-.75 0a.375.375 0 0 1-.75 0v-.75a.375.375 0 0 1 .729-.125h.021z\"/><path fill=\"#f59f00\" d=\"M10.625 7.5a.375.375 0 1 1 0-.75a.375.375 0 0 1 0 .75m10.75 0a.375.375 0 1 0 0-.75a.375.375 0 0 0 0 .75\"/><path fill=\"#533566\" d=\"M5.9 2a.9.9 0 0 0-.9.9v1.5a.9.9 0 0 0-.9-.9h-.2a.9.9 0 0 0-.9.9v4.2a.9.9 0 0 0 .9.9h.2a.9.9 0 0 0 .9-.9v1.5a.9.9 0 0 0 .9.9h.2a.9.9 0 0 0 .9-.9V2.9a.9.9 0 0 0-.9-.9zm20 0a.9.9 0 0 0-.9.9v7.2a.9.9 0 0 0 .9.9h.2a.9.9 0 0 0 .9-.9V8.6a.9.9 0 0 0 .9.9h.2a.9.9 0 0 0 .9-.9V4.4a.9.9 0 0 0-.9-.9h-.2a.9.9 0 0 0-.9.9V2.9a.9.9 0 0 0-.9-.9z\"/></g></svg>", "🥊": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#ca0b4a\" d=\"m22.58 20.82l-1.96 1.4h-6.44l5.51-4.99c-.47-.59-.76-1.33-.76-2.15v-4.02c0-1.89 1.53-3.42 3.42-3.42s3.42 1.53 3.42 3.42l-.05 3.75a7.3 7.3 0 0 1-.59 2.81a7.4 7.4 0 0 1-2.55 3.2\"/><path fill=\"#f8312f\" d=\"M13 2a7 7 0 0 0-7 7v7a6.99 6.99 0 0 0 3 5.745V24h13v-3c.628-.835 1-1.874 1-3V9a7 7 0 0 0-7-7z\"/><path fill=\"#9b9b9b\" d=\"M22 23H9v6.049c0 .53.39.951.861.951H21.14c.48 0 .861-.431.861-.951z\"/><path fill=\"#d3d3d3\" d=\"M17.688 25h-4.376c-.172 0-.312.156-.312.35v2.3c0 .194.14.35.312.35h4.376c.172 0 .312-.156.312-.35v-2.3c0-.194-.14-.35-.312-.35\"/></g></svg>", "🏃": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#ffc83d\" d=\"M18.106 9.89a.77.77 0 0 1 .774.104l2.423 1.888c.02.312.118.704.477.728h.52s.17.36.5.25c.3-.127.568-.322.78-.57c.28-.33.52-.87.41-1.14a2.4 2.4 0 0 0-.7-.69l-.7-.52l-2.29-1.754a3.08 3.08 0 0 0-3.073-.422l-3.28 1.296l.29.731l-.432-.328a5.93 5.93 0 0 1-8.037 1.32c-.058-.284-.2-.66-.538-.823a.39.39 0 0 0-.52.07s-.19-.36-.52-.22a2.4 2.4 0 0 0-.77.63a1.37 1.37 0 0 0-.17 1.2a2 2 0 0 0 .59.66l.404.222a8.23 8.23 0 0 0 11.38-1.65l2.47-.977zm-.186 5.68l-.45-.29q.103.191.172.395l-4.267 3.598l-2.668-.024l-.657.56A7.5 7.5 0 0 0 9 22.07l-2.1 5.62l1.41.93l3.56-6.24l3.76-2.876l2.01 2.827a2 2 0 0 0 2.05.79l6.2-1.39l-.61-1.73l-5.45.48l-2.044-4.02a2.7 2.7 0 0 0-.144-.786z\"/><path fill=\"#fcb100\" d=\"m13.73 7l1.05 2.05l-2.1 1.1l-1.05-2.1z\"/><path fill=\"#ffc83d\" d=\"M12.475 8.411c.45-.242.818-.6 1.065-1.034l.35-1.283l.4-1.332a1.74 1.74 0 0 0-.542-1.243A1.9 1.9 0 0 0 12.45 3h-1.2a1.9 1.9 0 0 0-.71.136c-.225.09-.43.22-.602.386a1.8 1.8 0 0 0-.4.579c-.092.216-.14.447-.138.68V5.5a4 4 0 0 1-.353.553c-.092.122-.137.183-.137.3c.015.114.073.219.163.295s.207.117.327.116h.004c.025 1.141.21 1.983 1.596 1.983a2.85 2.85 0 0 0 1.475-.336\"/><path fill=\"#533566\" d=\"M27.364 23.912L25 21.798l.085-1.861l1.144-.408a.49.49 0 0 1 .626.292s1.092 2.995 1.263 3.63c.067.215-.554.639-.755.46M4 27.15h3.19l1.11 1.51l-.54 1a.48.48 0 0 1-.66.2S4.3 28.36 3.74 28c-.18-.12 0-.85.26-.85\"/><path fill=\"#636363\" d=\"m14.64 18.21l2.5 3.44l2.24-1.42a1.2 1.2 0 0 0 .37-1.63l-1.93-3.19z\"/><path fill=\"#9b9b9b\" d=\"M10.695 19.238L13.21 21.7a1.262 1.262 0 0 0 1.91-.16l2.29-3.19s1-1.44.65-2.34a2.5 2.5 0 0 0-.48-1l-4.84 2.48\"/><path fill=\"#ed9200\" d=\"M4.793 10.042a.127.127 0 0 1-.011.177q-.3.264-.51.602a.26.26 0 0 0-.014.168a.22.22 0 0 0 .077.11a.26.26 0 0 0 .112.05a.1.1 0 0 0 .03.001q.146-.143.277-.297a.5.5 0 0 1 .06-.085c.101-.11.184-.068.221-.023a.125.125 0 0 1 .002.158l-.074.09l-.009.02c-.038.088-.08.262-.06.585a.125.125 0 0 1-.25.014a3 3 0 0 1-.003-.273c-.069.064-.164.068-.233.057a.5.5 0 0 1-.39-.336a.5.5 0 0 1 .035-.36q.233-.377.563-.669a.125.125 0 0 1 .177.011\" opacity=\".51\"/><path fill=\"#ff6723\" d=\"m12.74 17.52l5.18-1.95c-.473-.857-1.52-2.883-1.92-4.136c-.04-2.182-1.27-2.734-1.27-2.734a2.38 2.38 0 0 0-2.35.42a2.45 2.45 0 0 0-.866 1.331l-.004-.001a8.77 8.77 0 0 0 1.23 7.07\"/><path fill=\"#f1a11e\" d=\"M12.65 5.14s0-.95-1.56-.95C9.76 4.19 9.4 3.73 9.42 3a.93.93 0 0 1 1-1c.45 0 .695.066.899.12c.267.072.466.126.971-.01c1.2-.35 3-.15 3 1.85c0 2.475-.828 2.698-.977 2.718A.503.503 0 0 1 14.4 7.68q-.074 0-.168.009c-.377.029-.932.07-.932-.79q0-.277-.017-.5a.748.748 0 0 0-.32-1.23a.75.75 0 0 0-.313-.029\"/><path fill=\"#990839\" d=\"M10.56 6.991c.065.022.1.093.079.158a.675.675 0 0 1-.847.43a.125.125 0 1 1 .076-.238a.425.425 0 0 0 .534-.27a.125.125 0 0 1 .158-.08\"/><path fill=\"#fff\" d=\"M9.87 5.91a.14.14 0 0 1-.13-.15a.55.55 0 0 1 .57-.53a.55.55 0 0 1 .57.53a.14.14 0 0 1-.13.15z\"/><path fill=\"#d37034\" d=\"M9.973 4.531c.312-.042.63.034.89.212a.13.13 0 0 1-.146.214a1.02 1.02 0 0 0-.71-.168a.13.13 0 1 1-.034-.258\"/><path fill=\"#7d4533\" d=\"M10.441 5.91a.6.6 0 0 0 .016-.137c0-.254-.161-.46-.361-.46s-.362.206-.362.46q0 .072.017.137z\"/><path fill=\"#1c1c1c\" d=\"M10.261 5.91a.4.4 0 0 0 .02-.123c0-.16-.09-.29-.202-.29c-.11 0-.2.13-.2.29q0 .067.019.123z\"/><path fill=\"#fff\" d=\"M9.91 5.67c.039 0 .07-.04.07-.09s-.031-.09-.07-.09s-.07.04-.07.09s.031.09.07.09\"/><path fill=\"#ff8101\" d=\"M14.337 11.257a1.5 1.5 0 0 1-.776-2.898l3.38-.906l.777 2.898z\"/></g></svg>", "🧘": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#d67d00\" d=\"M22.75 21.5H16v3h-4.17c-.351 0-.663.168-.77.5l-1.014 3.681c-.204.655.293 1.319.994 1.319c.293 0 .575-.114.77-.323l1.208-1.28c.195-.21.487-.397.78-.397h8.952a3.25 3.25 0 0 0 0-6.5\"/><path fill=\"#f59f00\" d=\"M16 21.5H9.25A3.25 3.25 0 0 0 9 27.99V28h9.202c.293 0 .585.188.78.397l1.208 1.28c.195.21.477.323.77.323c.701 0 1.198-.664.993-1.319L20.94 25c-.1-.311-.38-.478-.704-.498l-.066-.002H16z\"/><path fill=\"#ffc83d\" d=\"M10 17a6 6 0 0 1 12 0v.648c0 .352.158.572.25.852c.304.946 1.42 1.85 2.433 2.694c.353.294.693.577.982.847l.91-.15c.25-.04.48.12.52.37a.444.444 0 0 1-.37.517l-.17.03c.08.1.14.21.19.329c.24.14.52.2.8.17c.21-.02.41.109.45.318a.4.4 0 0 1-.24.438c.1.06.18.17.19.3a.39.39 0 0 1-.35.438h-.01v.02a.39.39 0 0 1-.35.438c-.23.03-.46.02-.68-.03a.404.404 0 0 1-.42.269c-.42-.04-.81-.19-1.14-.448c-3.503-2.708-3.934-3.042-4.324-3.418l-.171-.169c-.5-.498-1-1.494-1-1.992h-1V18h-5v1.471h-1c0 .498-.5 1.494-1 1.992l-.17.169c-.39.376-.822.71-4.325 3.418c-.33.259-.72.408-1.14.448c-.19.02-.36-.1-.42-.27c-.22.05-.45.06-.68.03a.39.39 0 0 1-.35-.437v-.02h-.01a.39.39 0 0 1-.35-.439a.39.39 0 0 1 .19-.299a.4.4 0 0 1-.24-.438c.04-.21.24-.339.45-.319c.28.03.56-.03.8-.169c.05-.12.11-.23.19-.329l-.17-.03a.445.445 0 0 1-.37-.518a.446.446 0 0 1 .52-.368l.91.15c.29-.27.63-.554.982-.848c1.013-.843 2.129-1.748 2.433-2.694c.092-.28.25-.5.25-.852z\"/><path fill=\"#ff6723\" d=\"M20 21.5h-8v-8.972c.193-.197.536-.47 1-.731h5.99q.544.314 1.01.73z\"/><path fill=\"#fcb100\" d=\"M15.848 15h.294C17.718 15 19 13.77 19 12.26v-.464A6.1 6.1 0 0 0 15.995 11c-1.061 0-2.08.282-2.995.786v.484c-.01 1.51 1.271 2.73 2.848 2.73\"/><path fill=\"#f1a11e\" d=\"M18.784 9.99c.098-.22.177-.46.206-.71l.049-1.305a.97.97 0 0 0 .53-.19v.965c0 .54-.305 1.02-.785 1.24m-6.36-2.18c.166.11.353.18.568.19l.059 1.28c.03.26.098.51.206.73c-.5-.2-.833-.7-.833-1.25z\"/><path fill=\"#fdbb11\" d=\"M14 7.29a1 1 0 1 1-2 0a1 1 0 0 1 2 0m6 0a1 1 0 1 1-2 0a1 1 0 0 1 2 0\"/><path fill=\"#ffc83d\" d=\"M16.749 3h-1.495c-1.667 0-2.927 1.286-2.735 2.876l.246 3.533c.17 1.198 1.292 2.091 2.606 2.091h1.26c1.314 0 2.436-.893 2.606-2.09l.235-3.534C19.707 4.345 18.415 3 16.75 3\"/><path fill=\"#ed9200\" d=\"m15.798 7.168l-.284 1.11c-.06.23.086.46.275.46h.422c.197 0 .335-.23.275-.46l-.284-1.11c-.06-.24-.344-.24-.404 0\"/><path fill=\"#990839\" d=\"M16 9.492c-.318 0-.608-.083-.861-.228c-.084-.052-.178.062-.122.145c.206.353.571.591.983.591s.777-.238.983-.591c.056-.093-.038-.197-.122-.145a1.7 1.7 0 0 1-.861.228\"/><path fill=\"#f1a11e\" d=\"M19.803 4.04c-.186-.32-.47-.55-.784-.66a1.6 1.6 0 0 1-.842-.67A1.44 1.44 0 0 0 16.942 2c-.206 0-.392.04-.569.12c-.235.1-.5.1-.745 0A1.35 1.35 0 0 0 15.06 2c-.52 0-.97.28-1.225.69c-.196.32-.5.57-.853.69c-.343.12-.627.36-.813.71a1.5 1.5 0 0 0 .088 1.53a1 1 0 0 1 .167.55v.32a1 1 0 0 1 .431-.18V5.8c0-1.17.931-2.12 2.078-2.12h.793c.167 0 .324.1.383.26c.245.55.784.9 1.372.9h.872c.47.02.853.42.862.9l-.039.57h.03a1 1 0 0 1 .372.17v-.31c0-.2.059-.39.167-.55c.303-.45.352-1.07.058-1.58\"/><path fill=\"#d37034\" d=\"M18.311 5.974a.174.174 0 0 0-.03-.244h-.002l-.002-.002l-.005-.004a1 1 0 0 0-.082-.054a1.64 1.64 0 0 0-1.039-.213a.174.174 0 0 0 .045.345a1.3 1.3 0 0 1 .86.195l.01.007l.002.001a.174.174 0 0 0 .243-.031m-4.431.1l.01-.008l.049-.03a1.4 1.4 0 0 1 .872-.177a.174.174 0 1 0 .044-.345a1.74 1.74 0 0 0-1.18.278l-.005.004l-.002.002a.174.174 0 0 0 .21.276m.242.836a.15.15 0 0 0-.24.179a.92.92 0 0 0 .745.361a.93.93 0 0 0 .746-.361a.15.15 0 0 0-.242-.178a.63.63 0 0 1-.504.239a.63.63 0 0 1-.504-.24m2.749 0a.15.15 0 0 0-.24.179a.92.92 0 0 0 .745.361a.93.93 0 0 0 .746-.361a.15.15 0 0 0-.242-.178a.63.63 0 0 1-.504.239a.63.63 0 0 1-.504-.24\"/><path fill=\"#d67d00\" d=\"M6.418 22.95a.063.063 0 0 1 .076.1l-.956.742a1.42 1.42 0 0 1-1.035.29H4.5v-.002a.4.4 0 0 0-.21.043a.32.32 0 0 0-.157.246v.003a.32.32 0 0 0 .245.355a.45.45 0 0 1 .196-.247a.5.5 0 0 1 .303-.07c.344.037.678-.057.945-.264l1.23-.956a.062.062 0 0 1 .078.098l-.01.01l-1.23.957c-.294.227-.66.33-1.036.289h-.001a.33.33 0 0 0-.216.044a.31.31 0 0 0-.144.218l-.008.054H4.48c-.01.17.12.323.296.338h.003q.302.039.593-.015l.019.065v.003l.009-.003a.4.4 0 0 1-.017-.067l-.01.002l-.005-.038v.003h.01v-.006h-.01v.003a.46.46 0 0 1 .417-.499a1.4 1.4 0 0 0 .688-.273l.025-.011l1.214-.945a.063.063 0 1 1 .077.098l-1.23.957c-.22.165-.47.268-.751.299h-.002a.337.337 0 0 0-.303.366a.34.34 0 0 0 .372.298q.114-.01.225-.033a.063.063 0 0 1 .025.122a2 2 0 0 1-.238.036a.47.47 0 0 1-.466-.259c-.213.043-.435.05-.657.022a.45.45 0 0 1-.408-.473a.447.447 0 0 1-.347-.494a.44.44 0 0 1 .138-.281a.45.45 0 0 1-.188-.418a.45.45 0 0 1 .51-.4a1.3 1.3 0 0 0 .944-.264a.063.063 0 0 1 .076.099a1.42 1.42 0 0 1-1.035.288h-.001a.325.325 0 0 0-.37.29a.33.33 0 0 0 .177.328a.45.45 0 0 1 .258-.042q.13.014.26.004a1.3 1.3 0 0 0 .689-.27z\"/><path fill=\"#d67d00\" fill-rule=\"evenodd\" d=\"M25.598 22.95a.063.063 0 0 0-.077.1l.956.742a1.42 1.42 0 0 0 1.035.29h.002l.002-.001a.4.4 0 0 1 .21.043a.32.32 0 0 1 .157.246v.003a.32.32 0 0 1-.244.355a.45.45 0 0 0-.197-.247a.5.5 0 0 0-.302-.07a1.3 1.3 0 0 1-.946-.264l-1.23-.956a.062.062 0 0 0-.078.098l.011.01l1.23.957c.293.227.66.33 1.035.289h.002a.33.33 0 0 1 .215.044a.31.31 0 0 1 .145.218l.008.054h.004c.01.17-.12.323-.296.338h-.003q-.302.039-.593-.015l.004-.038a.46.46 0 0 0-.416-.499a1.4 1.4 0 0 1-.69-.273l-.023-.011l-1.215-.945a.063.063 0 1 0-.077.098l1.23.957c.22.165.47.268.752.299a.336.336 0 0 1 .304.366a.34.34 0 0 1-.372.298a2 2 0 0 1-.225-.033a.063.063 0 0 0-.025.122q.118.024.239.036a.47.47 0 0 0 .465-.259c.214.043.436.05.657.022a.45.45 0 0 0 .409-.473a.447.447 0 0 0 .347-.494a.44.44 0 0 0-.139-.281a.45.45 0 0 0 .188-.418a.45.45 0 0 0-.51-.4a1.3 1.3 0 0 1-.944-.264a.063.063 0 1 0-.076.099c.293.227.66.33 1.035.288h.002a.325.325 0 0 1 .369.29a.33.33 0 0 1-.176.328a.45.45 0 0 0-.255-.042h-.004q-.131.014-.259.004a1.3 1.3 0 0 1-.685-.267l-.005-.003zm1.05 2.196v.003h-.01v-.006h.01zm-.004.038q-.008.038-.018.065l-.001.003l-.008-.003a.4.4 0 0 0 .016-.067z\" clip-rule=\"evenodd\"/><path fill=\"#9b9b9b\" d=\"M20 21.5h-8l1.63 3h4.684z\"/></g></svg>", "🧗": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#d3d3d3\" d=\"m9.593 20.025l-.577-2.522c-.26-.53.154-1.143.704-1.363l5.37-2.16c.67-.27 1.14-.87 1.26-1.57L18 2l-.729.257L16.543 2h-3.346l-1.588.443L10.015 2H2v12.866l.941 3.259L2 21.59v1.454l1.779 5.747L10.463 30h3.507l-4.91-4.59a.683.683 0 0 1 0-1l.96-.91a2.68 2.68 0 0 0 .708-2.705c-.041-.137-1.07-.638-1.135-.77\"/><path fill=\"#9b9b9b\" d=\"M16 5.54L16.54 2h1.464L16.62 12.48A2.46 2.46 0 0 1 15 14.51l-5.52 1.96l-3.32 1.16c-.94.33-4.16 1.4-4.16 1.4v-4.18l7.34-2.12a3.22 3.22 0 0 0 2.3-2.7l.27-2.17c.06-.48 0-.96-.17-1.41L10.03 2h3.17l.79 3.91c.03.15.03.3.01.45l-.42 3.05c-.04.26.26.42.46.25L14.8 9c.13-.12.23-.26.29-.43l.76-2.37c.06-.22.12-.44.15-.66M4.39 24.08L2 23v7h8.56c.03 0-2.63-1.43-3.73-2.02c-.3-.16-.54-.42-.67-.73l-1.03-2.41c-.15-.34-.41-.61-.74-.76\"/><path fill=\"#636363\" d=\"m9.5 16.457l-.23.773c-.06.19-.04.4.05.59l1.41 2.97l-2.96-.9c-.73-.22-1.51-.17-2.2.13L2 21.6v-2.57z\"/><path fill=\"#635994\" d=\"m26.24 19.6l-1.9-.72v1.45a.95.95 0 1 0 1.9 0z\"/><path fill=\"#433b6b\" d=\"M24.606 18.13a.176.176 0 1 0-.353 0v.859a.18.18 0 0 0 .118.2l1.8.62a.179.179 0 1 0 .117-.338l-1.682-.58z\"/><path fill=\"#ffc83d\" d=\"M19.917 7.759c.057-.088.415-.667.203-1.11c-.15-.31-.4-.22-.4-.22s.05-.35-.25-.42c-.4-.1-.86.04-.86.04c-.37.12-.69.49-.74.75c-.04.22 0 .55.07.77l.323.705l-.008.003c1.093 3.257 3.878 5.237 6.52 6.192l.591-1.638c-2.328-.841-4.573-2.51-5.449-5.072m-.935 7.928l-.807 2.281l-1.115-.608l-5.322 2.71l-.21-.722l.21-.68L16.1 15.67a2.52 2.52 0 0 1 2.18-.33h.01zm2.565 6.121l-1.905-1.263l-.602.915c-.33.5-.33 1.16.01 1.66l2.68 3.99l1.04-.9l-1.84-3.71z\"/><path fill=\"#d67d00\" d=\"M19.027 6.712a.109.109 0 1 0-.115-.184a.45.45 0 0 0-.193.226a.43.43 0 0 0 .1.434c.041.043.109.089.189.08q-.066.082-.14.192a.109.109 0 1 0 .183.12c.154-.237.273-.338.345-.38l.007-.005l.103-.03l.007-.002h.002a.11.11 0 0 0 .073-.113c-.01-.1-.094-.108-.166-.094a.4.4 0 0 0-.097.035a3 3 0 0 1-.333.06l-.02-.016a.2.2 0 0 1-.051-.092a.2.2 0 0 1 .002-.115a.24.24 0 0 1 .104-.116\"/><path fill=\"#fcb100\" d=\"m25.09 10.66l-.11 1.75l-1.79-.09l.12-1.78z\"/><path fill=\"#ff6723\" d=\"M25.52 13.27c-.05-.32-.19-.76-.58-1.07c-.98-.78-1.75-.45-1.75-.45s-1 .36-1.15 2.02c0 .01-.38 1.41-1.4 2.69l3.6 2.09c1.4-2.41 1.43-4.91 1.28-5.28\"/><path fill=\"#636363\" d=\"M20.81 18.01L19.2 20.8l1.67 1.11c.41.27.96.17 1.24-.24l1.61-2.32z\"/><path fill=\"#9b9b9b\" d=\"m17.95 18.1l.92-2.47l1.774.824l.276-.364l3.57 2.01l-.25.45s-.32.67-.86 1.15s-1.82.27-1.82.27l-2.91-.6a.945.945 0 0 1-.7-1.27\"/><path fill=\"#ffc83d\" d=\"M22.64 10.77c.55.32 1.57.56 2.19.06l.74-.74l.79-.75c.39-.66.16-1.52-.5-1.91l-.78-.46c-.66-.39-1.52-.16-1.91.5l-.295.5c-.211.13-.348.189-.443.23c-.11.048-.163.071-.211.15c-.09.15.008.367.155.468c-.443.785-.648 1.414.265 1.953\"/><path fill=\"#f1a11e\" d=\"M24.44 7.82c1.02.6.66 1.22.66 1.22s.48.14-.26 1.4c-.38.65.2.8.42.93c.38.22.81-.39.31-.69c0 0 .64.36 1.68-1.4c.76-1.29-.33-2.12-1.26-2.37c-.67-.18-.5-.38-1.18-.78c-.23-.13-.71-.25-1.01.26c-.29.48-.23.92.64 1.43\"/><path fill=\"#fdbb11\" d=\"M25.41 9.535a.545.545 0 1 1-1.09 0a.545.545 0 0 1 1.09 0\"/><path fill=\"#635994\" d=\"M25.39 8.689a.24.24 0 1 0-.378-.298l-2 2.54a.24.24 0 0 0 .377.298zM11.736 18.66s-1.152-.841-1.937-1.418c-.152-.116-.43.146-.542.255c-.081.08-.052.15-.052.15l1.188 2.494s.228.495.461.377l.196-.096l.028-.012l.685-.34zm9.813 8.2s-.14 1.42-.23 2.39c-.012.117.17.23.342.276l-.002.003s.08.05.1.04c.11.03.18-.06.18-.06l1.66-2.39s.21-.32-.01-.46l-.25-.16l-.002.003l-.608-.393z\"/><path fill=\"#fff\" d=\"M23.07 8.34c-.05-.03-.065-.087-.035-.146c0 0 .003-.007.006-.01c.129-.22.387-.23.576-.13c.19.1.305.339.176.557l-.007.01c-.03.05-.085.068-.13.046z\"/><path fill=\"#7d4533\" d=\"M23.001 8.302c.01-.04.018-.084.037-.117c.09-.16.281-.221.41-.152c.13.07.15.259.06.418c-.02.04-.05.07-.08.09z\"/><path fill=\"#7d4533\" d=\"M23.075 8.344q0-.06.03-.12c.05-.09.159-.129.228-.09c.07.04.09.15.03.24a.23.23 0 0 1-.083.084z\"/><path fill=\"#fff\" d=\"M23.262 8.174c.016-.029.01-.063-.013-.077s-.056-.002-.073.026c-.016.029-.01.063.013.077s.056.002.073-.026\"/><path fill=\"#990839\" d=\"M22.4 9.26a.093.093 0 0 1 .131.009a.32.32 0 0 0 .448.032a.093.093 0 0 1 .124.14a.505.505 0 0 1-.712-.048a.093.093 0 0 1 .008-.132\"/><path fill=\"#00a6ed\" d=\"m27.44 6.77l-1.16-.9c-.76-.6-1.87-.46-2.46.31l-.52.67c-.12.16-.1.39.06.51l3.35 2.61c.16.12.39.1.51-.06l.53-.68c.59-.76.45-1.87-.31-2.46\"/><path fill=\"#0074ba\" d=\"m26.29 8.1l-1.02-.79a.3.3 0 0 0-.42.05a.3.3 0 0 0 .05.42l1.02.79c.13.1.32.08.42-.05a.3.3 0 0 0-.05-.42\"/><path fill=\"#44911b\" d=\"M19.26 12.43L20.79 16l.002-.001a.25.25 0 0 0 .108.121l3.6 2.04q.06.03.12.03c.08 0 .16-.04.21-.12c.07-.12.03-.26-.09-.33l-3.543-2.008L19.7 12.24c-.17-.4-.26-.83-.26-1.27V2h-.48v8.97c0 .5.1 1 .3 1.46\"/><path fill=\"#ffc83d\" d=\"M18.82 6.93c.03.15.18.25.33.22l.59-.11l-.1-.55l-.59.11c-.16.03-.26.17-.23.33m3.58 5.47l-2.58.69l-.02.01c-.2.06-.42 0-.58-.14l-1.93-1.89a1.6 1.6 0 0 1-.09-.44c-.03-.3-.02-.54-.02-.54c.01-.14-.11-.26-.25-.27s-.26.11-.27.25c0 .01-.01.16 0 .36c0 .03-.03.04-.05.02c-.29-.29-.57-.7-.68-.87a.24.24 0 0 0-.33-.07a.24.24 0 0 0-.07.33c.01.01.15.23.35.49c.02.03.05.06.07.09c.01.01 0 .02 0 .03h-.02c-.32-.34-.54-.65-.55-.66a.23.23 0 0 0-.33-.05a.23.23 0 0 0-.05.33s.24.32.5.61c.01.01 0 .02-.01.01l-.44-.39a.236.236 0 0 0-.33.03c-.09.1-.07.26.03.34l.5.41c.01.01 0 .03-.02.02c-.16-.11-.27-.19-.27-.19c-.11-.08-.25-.05-.33.06s-.05.25.06.33c.47.33 1.24.88 1.33.95L18 14.19a2.33 2.33 0 0 0 2.27.57l2.58-.69z\"/><path fill=\"#ff8101\" d=\"M24.29 13.06c.15.57-.19 1.16-.76 1.31l-1.55.41c-.36.1-.74-.11-.83-.48l-.38-1.46l2.14-.66c.59-.18 1.2.16 1.36.76z\"/></g></svg>", "🛼": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#433b6b\" d=\"M26.248 22c.73 0 1.361-.486 1.622-1.134c.08-.203.13-.425.13-.658V18l-12.5-1.5L3 18v2.208c0 .233.05.455.13.658c.26.678.911 1.134 1.672 1.134\"/><path fill=\"#9b9b9b\" d=\"M28.04 24H3.96c-.53 0-.96-.449-.96-1s.43-1 .96-1h24.08c.53 0 .96.449.96 1s-.43 1-.96 1\"/><path fill=\"#ca0b4a\" d=\"M12 26.5a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0m15 0a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0\"/><path fill=\"#d3d3d3\" d=\"M10 26.5a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0m15 0a1.5 1.5 0 1 1-3 0a1.5 1.5 0 0 1 3 0\"/><path fill=\"#f92f60\" d=\"M10.926 3v1.996A53 53 0 0 1 9 6.91H3V18h25c0-4.294-5.757-5.227-6.948-5.9c-.38-.21-2.183-1.103-2.313-2.137c-.16-1.194-.5-4.766-.5-4.766C17.977 3.913 16.926 3 15.714 3z\"/><path fill=\"#321b41\" d=\"M5.577 3.01c-.089 0-.168.019-.257.019C4.01 3.154 3 4.022 3 5.1V7h6.166C10.177 7 11 6.345 11 5.535V3H5.577zM16.458 8h2.084c.252 0 .458-.224.458-.5s-.206-.5-.458-.5h-2.084c-.252 0-.458.224-.458.5s.206.5.458.5m0 2h2.084c.252 0 .458-.224.458-.5s-.206-.5-.458-.5h-2.084c-.252 0-.458.224-.458.5s.206.5.458.5\"/></g></svg>", "🤸": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><g fill=\"none\"><path fill=\"#ffc83d\" d=\"m13.5 28.99l.5-.39V22l.91-4l1.09.68V29c0 .49-.43 1-.92 1h-1.59c-.27 0-.49-.25-.49-.52c.01-.27.23-.49.5-.49m13.307-3.786l.493.533a.4.4 0 0 1 .05.043l.61.65c.11.13.1.32-.02.43c-.13.11-.32.1-.43-.02l-.02-.02l-.004-.024l-.002-.002a.3.3 0 0 1-.104.256a.3.3 0 0 1-.43-.04l-.006-.008l-.104-.112l-.002-.01l-.008-.01c.01.1-.03.2-.11.27a.31.31 0 0 1-.42-.04l-.27-.3a.28.28 0 0 0-.22-.09l.01.09c.03.2-.12.39-.32.41a.37.37 0 0 1-.41-.33l-.086-.682l-.114-.128l-6.02-6.32l.94-1.03l1.55.73l5.253 5.544l.157.169z\"/><path fill=\"#ff6723\" d=\"M21 14h-6v3.735c-.322.772-1.05 2.691-1.05 4.265h2l1.067-2h1.95l1.953 1.9l1.5-1.3c-.552-1.563-1.323-2.522-1.42-2.63z\"/><path fill=\"#ffc83d\" d=\"m14.952 14.05l-10.68-.03c-.22 0-.35-.26-.22-.44l.39-.54c.43-.59.94-.6 1.67-.68l9.89-1.36c1.91-.35 2.9-.33 3.56-.97l7.21-6.62C27.372 2.85 28.34 2 28.8 2h.7c.21 0 .322.24.192.41l-8.64 11.64z\"/><path fill=\"#9b9b9b\" d=\"M14.952 14.05h-1.95v-2.64l4.03-.67c.98-.22 2.15-.46 2.62-.89l1.7-1.47l2.32 2.14l-2.62 3.53z\"/><path fill=\"#533566\" d=\"M30.86 2.89c-1.13.63-2.77 1.55-2.77 1.55l-1.69-.72l-.04-1.17c-.01-.27.37-.55.64-.55c0 0 3.17-.06 3.83-.02c.22.01.26.78.03.91M2.47 14.69c1.26-.27 3.1-.66 3.1-.66l.79-1.66l-.74-.91a.483.483 0 0 0-.69-.06s-2.42 2.05-2.89 2.51c-.15.16.17.83.43.78\"/><path fill=\"#fcb100\" d=\"M16.86 20.41c0-.04.53-1.18.85-1.56c.12-.14.34-.15.46 0c.33.38.88 1.56.88 1.56c0 .65-.45.56-1.11.56c-.67-.01-1.08.1-1.08-.56\"/><path fill=\"#fdbb11\" d=\"M16.67 22.53a.67.67 0 1 1-1.34 0a.67.67 0 0 1 1.34 0m3.94 0a.67.67 0 1 1-1.34 0a.67.67 0 0 1 1.34 0\"/><path fill=\"#ffc83d\" d=\"M17.51 25.49h.9c1.01 0 1.78-.85 1.66-1.9l-.15-2.33c-.11-.79-.78-1.38-1.58-1.38h-.76c-.8 0-1.47.59-1.58 1.38l-.15 2.33c-.14 1.01.64 1.9 1.66 1.9\"/><path fill=\"#f1a11e\" d=\"M19.96 21.86c.14 0 .27.05.37.12v-.38a.87.87 0 0 0-.55-.81c.07.15.12.31.14.47zm-4.51 2.8c.12.21.31.36.52.43c.23.08.43.23.56.44a.95.95 0 0 0 1.2.38c.16-.07.33-.07.49 0a.96.96 0 0 0 1.19-.37c.13-.21.33-.37.57-.45c.22-.08.41-.23.53-.46c.17-.32.14-.71-.06-.99a.64.64 0 0 1-.11-.36v-.21c-.08.06-.18.1-.28.12h-.02l.02.34c0 .76-.61 1.37-1.37 1.37h-.52c-.11 0-.21-.07-.25-.17a1 1 0 0 0-.91-.59h-.57a.6.6 0 0 1-.57-.58l.02-.37h-.02a.8.8 0 0 1-.25-.11v.21c0 .13-.04.25-.11.35c-.22.29-.25.69-.06 1.02m.68-3.85c-.07.14-.12.3-.14.46l-.03.59a.7.7 0 0 0-.35.13v-.38c0-.35.21-.66.52-.8\"/><path fill=\"#990839\" d=\"M17.96 21.28c.22 0 .42.05.6.14c.06.03.12-.04.09-.09a.82.82 0 0 0-.68-.37c-.28 0-.54.15-.68.37c-.04.06.03.12.09.09c.16-.09.36-.14.58-.14\"/><path fill=\"#ed9200\" d=\"m18.12 22.64l.21-.69a.217.217 0 0 0-.21-.28h-.32c-.15 0-.25.14-.21.28l.21.69c.06.15.27.15.32 0\"/><path fill=\"#fff\" d=\"M16.42 22.66c.07.25.29.43.56.43c.28 0 .51-.2.56-.46c.02-.06-.03-.11-.09-.11h-.92c-.07 0-.13.07-.11.14m3.09 0a.58.58 0 0 1-.56.43c-.28 0-.52-.2-.56-.46c-.02-.06.03-.11.09-.11h.92c.07 0 .13.07.11.14\"/><path fill=\"#7d4533\" d=\"M16.69 22.61c0 .21.17.37.37.37c.21 0 .37-.17.36-.37c0-.04 0-.07-.01-.1h-.71c-.01.03-.01.07-.01.1m2.54 0c0 .21-.17.37-.37.37a.36.36 0 0 1-.36-.37c0-.04 0-.07.01-.1h.71c.01.03.01.07.01.1\"/><path fill=\"#000\" d=\"M17.06 22.82c.12 0 .21-.09.21-.21c0-.04 0-.07-.03-.1h-.37c-.01.03-.02.06-.02.1c0 .12.09.21.21.21m1.8 0a.205.205 0 0 1-.18-.31h.37c.01.03.02.06.02.1c0 .12-.09.21-.21.21\"/><path fill=\"#fff\" d=\"M17.25 22.75a.07.07 0 1 1-.14 0a.07.07 0 0 1 .14 0m1.81 0a.07.07 0 1 1-.14 0a.07.07 0 0 1 .14 0\"/></g></svg>", "⚡": "<svg class=\"ico\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><path fill=\"#ff822d\" d=\"m17.831 3.306l-9.726 13.9c-.26.37-.045.794.395.794h4c.35 0 .5.14.5.5v10.763c0 .71.86 1.02 1.27.45l9.618-12.828c.27-.37.052-.885-.388-.885H20c-.5 0-1-.5-1-1V3.5c0-.5-.76-.774-1.169-.194\"/></svg>"};
   const ico = e => ICONS[e] || esc(e);
+  const REACTS = ["🔥","💪","👏","🙌","😍","🤩"];
+  // Cheers live in the sender's own record (people/<id>.sent); the receiver tracks what they've seen in their own record (.seen).
+  function cheersFor(toId, k) {
+    const out = [];
+    for (const [fid, p] of Object.entries(people)) for (const c of (p.sent || [])) if (c.to === toId && c.day === k) out.push({...c, from: fid});
+    return out.sort((a,b) => a.at - b.at);
+  }
   const typeName = e => (TYPES.find(x => x[0] === e) || [e,"Workout"])[1];
   const pactStreak = () => {
     const ps = Object.values(people); if (ps.length < 2) return 0;
@@ -740,19 +789,19 @@
         const body = ss.map(s => `<div class="tl">${ico(s.e)} <span>${esc(typeName(s.e))}${s.n ? " · " + esc(s.n) : ""}</span></div>`).join("");
         return `${hasNote ? '<span class="nb">💬</span>' : ''}${ss.length>1 ? `<span class="cnt">${ss.length}</span>` : ''}<span class="tip"><b>${esc(who)}</b>${body}</span>`;
       };
+      const rxBadge = (id, k, ss) => { if (!id || !ss.length) return ""; const c = cheersFor(id, k); return c.length ? `<span class="rx">${esc(c[c.length-1].r)}</span>` : ""; };
       const tipOn = ss => ss.some(s => s.n) || ss.length > 1 ? 'has-note' : '';
       wh += `<div class="day ${isT?'today':''}"><div class="lbl">${days[i]}</div>
-        <div class="dot me ${cls(ms)} ${tipOn(ms)} ${fut?'future':''} ${k===justLogged?'pop':''}" data-k="${k}" ${fut?'':'role="button"'}>${face(ms)}${tip(mine?.nick||"You", ms)}</div>
-        ${them?`<div class="dot them ${cls(ts)} ${tipOn(ts)} ${fut?'future':''}">${face(ts)}${tip(them.nick, ts)}</div>`:''}
+        <div class="dot me ${cls(ms)} ${tipOn(ms)} ${fut?'future':''} ${k===justLogged?'pop':''}" data-k="${k}" ${fut?'':'role="button"'}>${face(ms)}${tip(mine?.nick||"You", ms)}${rxBadge(me, k, ms)}</div>
+        ${them?`<div class="dot them ${cls(ts)} ${tipOn(ts)} ${fut?'future':''}" data-k="${k}">${face(ts)}${tip(them.nick, ts)}${rxBadge(oid, k, ts)}</div>`:''}
       </div>`;
     }
     $("#week").innerHTML = wh;
     $("#week").className = "week " + weekAnim; weekAnim = "";
-    document.querySelectorAll(".dot.them.has-note").forEach(el => el.onclick = ev => {
+    document.querySelectorAll(".dot.them.on").forEach(el => el.onclick = ev => {
       ev.stopPropagation();
-      const was = el.classList.contains("show");
       document.querySelectorAll(".dot.show").forEach(x => x.classList.remove("show"));
-      if (!was) el.classList.add("show");
+      if (myP() && oid) openCheer(oid, el.dataset.k);
     });
     document.querySelectorAll(".dot.me:not(.future)").forEach(el => el.onclick = () => {
       if (!mine || readOnly) return;
@@ -852,6 +901,56 @@
       const list = sess(myP(), k); list.splice(idx, 1);
       putSess(myP(), k, list); close("#pickScrim"); render(); saveMe();
       toast(list.length ? "Removed that one." : "Removed. No judgement… mostly.");
+    };
+  }
+  function openCheer(toId, k) {
+    const p = people[toId]; if (!p) return;
+    const ss = sess(p, k), dn = dayName(k);
+    const sent = cheersFor(toId, k).filter(c => c.from === me);
+    $("#cheerTitle").textContent = `Cheer ${p.nick} on`;
+    $("#cheerDay").innerHTML = `<div class="hint" style="margin-top:0">${esc(dn === "today" ? "Today" : dn[0].toUpperCase()+dn.slice(1))}</div>` +
+      ss.map(s => `<div class="srow"><span class="se">${ico(s.e)}</span><div class="st"><b>${esc(typeName(s.e))}</b>${s.n ? `<span>${esc(s.n)}</span>` : ""}</div></div>`).join("") +
+      (sent.length ? `<div class="hint">You already sent: ${sent.map(c => esc(c.r) + (c.m ? " “" + esc(c.m) + "”" : "")).join(" · ")}</div>` : "");
+    let sel = "🔥";
+    const draw = () => { $("#reacts").innerHTML = REACTS.map(r => `<button type="button" class="${r===sel?'sel':''}" data-r="${r}">${r}</button>`).join("");
+      document.querySelectorAll("#reacts button").forEach(b => b.onclick = () => { sel = b.dataset.r; draw(); }); };
+    draw();
+    $("#cheerMsg").value = "";
+    $("#cheerSend").onclick = () => {
+      const mp = myP(); if (!mp) return;
+      const c = {id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6), to: toId, day: k, r: sel, m: $("#cheerMsg").value.trim().slice(0,140), at: Date.now()};
+      mp.sent = [...(mp.sent || []), c].slice(-60);
+      close("#cheerScrim"); render(); saveMe(); confetti(); emojiRain(sel, 14);
+      toast(`Sent! It pops up for ${p.nick} next time they open the app 💌`);
+    };
+    $("#cheerCancel").onclick = () => close("#cheerScrim");
+    open("#cheerScrim");
+  }
+  let showingCheer = false;
+  function checkInbox() {
+    const mp = myP(); if (!mp || showingCheer) return;
+    if (document.querySelector(".scrim.open")) return;
+    const seen = new Set(mp.seen || []);
+    const queue = [];
+    for (const [fid, p] of Object.entries(people)) if (fid !== me) for (const c of (p.sent || [])) if (c.to === me && !seen.has(c.id)) queue.push({...c, from: fid});
+    if (!queue.length) return;
+    queue.sort((a,b) => a.at - b.at);
+    const c = queue[0], f = people[c.from] || {};
+    const ss = sess(mp, c.day), first = ss[0];
+    const dn = dayName(c.day);
+    showingCheer = true;
+    $("#popCard").innerHTML = `<div class="cav">${avatarSVG(avOf(f, c.from), "hyped")}</div>
+      <div class="from">${esc(f.nick || "Your partner")} sent you</div>
+      <div class="big-r">${esc(c.r)}</div>
+      ${c.m ? `<div class="msg">${esc(c.m)}</div>` : ""}
+      <div class="for">for your ${first ? ico(first.e) + " " + esc(typeName(first.e)).toLowerCase() : "workout"} ${dn === "today" ? "today" : "on " + esc(dn)}</div>
+      <button class="primary" id="popOk">${queue.length > 1 ? `Next (${queue.length - 1} more)` : "Let's go 💪"}</button>`;
+    open("#popScrim"); cannons(3); emojiRain(c.r);
+    try { navigator.vibrate && navigator.vibrate([20,60,20]); } catch(_){}
+    $("#popOk").onclick = () => {
+      mp.seen = [...(mp.seen || []), c.id].slice(-200);
+      close("#popScrim"); showingCheer = false; saveMe();
+      setTimeout(checkInbox, 350);
     };
   }
   function addSession(k, e, note) {
@@ -977,7 +1076,7 @@
   $("#setupCancel").onclick = () => { close("#setupScrim"); render(); };
   $("#pickCancel").onclick = () => close("#pickScrim");
   document.querySelectorAll(".scrim").forEach(s => s.addEventListener("click", e => {
-    if (e.target === s && !["whoScrim","gate"].includes(s.id) && (s.id !== "setupScrim" || myP())) { close("#"+s.id); render(); }
+    if (e.target === s && !["whoScrim","gate","popScrim"].includes(s.id) && (s.id !== "setupScrim" || myP())) { close("#"+s.id); render(); }
   }));
   document.addEventListener("click", () => document.querySelectorAll(".dot.show").forEach(x => x.classList.remove("show")));
   const open = s => $(s).classList.add("open");
@@ -998,6 +1097,37 @@
     for (let i=0;i<120;i++) parts.push({x:ox,y:oy,vx:(Math.random()-.5)*14,vy:-Math.random()*16-6,s:Math.random()*7+4,
       c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4,life:0});
     if (!raf) raf = requestAnimationFrame(tick);
+  }
+  // Two side cannons firing up and inward, in waves.
+  function cannons(waves = 3) {
+    const cs = getComputedStyle(document.documentElement);
+    const cols = [cs.getPropertyValue("--me").trim()||"#c6ff3d", cs.getPropertyValue("--them").trim()||"#ff5c8a","#ffd23d","#7cc8ff","#ffffff","#a77bff"];
+    for (let w = 0; w < waves; w++) setTimeout(() => {
+      for (const side of [-1, 1]) {
+        const ox = side < 0 ? 0 : innerWidth, oy = innerHeight * 0.9;
+        for (let i = 0; i < 70; i++) parts.push({x:ox, y:oy, vx:-side*(Math.random()*11+4), vy:-Math.random()*17-11, s:Math.random()*8+4,
+          c:cols[(i+w)%cols.length], r:Math.random()*6, vr:(Math.random()-.5)*.5, life:0});
+      }
+      if (!raf) raf = requestAnimationFrame(tick);
+    }, w * 380);
+  }
+  // A shower of the sent emoji falling over the screen.
+  function emojiRain(ch, n = 18) {
+    const layer = document.createElement("div");
+    layer.className = "rain";
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement("span");
+      s.textContent = ch;
+      s.style.left = (Math.random() * 100) + "vw";
+      s.style.fontSize = (20 + Math.random() * 26) + "px";
+      s.style.animationDelay = (Math.random() * 1.2) + "s";
+      s.style.animationDuration = (2.2 + Math.random() * 1.6) + "s";
+      s.style.setProperty("--rot", ((Math.random() - .5) * 120) + "deg");
+      s.style.setProperty("--drift", ((Math.random() - .5) * 60) + "px");
+      layer.appendChild(s);
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 4400);
   }
   function tick() {
     const d = devicePixelRatio; cx.clearRect(0,0,cv.width,cv.height);
@@ -1042,6 +1172,7 @@
     const first = mode === "loading"; mode = "live"; banner("");
     if (!dareEditing && !dareSpinning) render();
     if (first) whoAmI();
+    setTimeout(checkInbox, 900);
   }
   function whoAmI() {
     if (me && people[me]) return;
@@ -1051,7 +1182,7 @@
       `<button class="who-btn" data-id="${esc(id)}"><span class="who-av">${avatarSVG(avOf(p,id),"happy","still")}</span><span>I'm <b>${esc(p.nick||"?")}</b></span></button>`).join("");
     document.querySelectorAll("#whoList .who-btn").forEach(b => b.onclick = () => {
       me = b.dataset.id; try { localStorage.setItem(ME_KEY(pactId), me); } catch(_){}
-      close("#whoScrim"); render(); toast(`Welcome back, ${people[me].nick}. 💪`);
+      close("#whoScrim"); render(); toast(`Welcome back, ${people[me].nick}. 💪`); setTimeout(checkInbox, 1200);
     });
     $("#whoNew").onclick = () => { close("#whoScrim"); me = newId(); openSetup(false); };
     open("#whoScrim");
